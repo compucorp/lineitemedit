@@ -256,6 +256,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
         }
       }
 
+      $newLineItemParams = [];
       foreach ($lineItemParams as $key => $lineItem) {
         if ($lineItem['price_field_value_id'] == 'new') {
           list($lineItem['price_field_id'], $lineItem['price_field_value_id']) = CRM_Lineitemedit_Util::createPriceFieldByContributionID($entityID);
