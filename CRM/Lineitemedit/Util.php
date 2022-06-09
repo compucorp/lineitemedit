@@ -511,9 +511,12 @@ ORDER BY  ps.id, pf.weight ;
       if ($taxAmount) {
         $contriParams['tax_amount'] = $taxAmount;
       }
+      // Cannot Use API at this point because of errors like Cannot change contribution status from Completed to Pending refund. or Cannot change contribution status from Completed to Partially paid.
+      // civicrm_api3('Contribution', 'create', $contriParams);
+      \CRM_Utils_Hook::pre('Contribution', 'edit', $contributionId, $contriParams);
       $updatedContributionDAO->copyValues($contriParams);
       $updatedContributionDAO->save();
-
+      \CRM_Utils_Hook::post('Contribution', 'edit', $contributionId, $updatedContributionDAO);
       if (!$createTrxn) {
         return NULL;
       }
@@ -755,7 +758,7 @@ ORDER BY  ps.id, pf.weight ;
       $changeFinancialType = (civicrm_api3('LineItem', 'getcount', ['contribution_id' => $contributionId, 'financial_type_id' => $newLineItem['financial_type_id']]) == $totalLineItem);
     }
     if ($changeFinancialType) {
-      CRM_Core_DAO::executeQuery(sprintf("UPDATE civicrm_contribution SET financial_type_id = %d WHERE id = %d ", $newLineItem['financial_type_id'], $contributionId));
+      civicrm_api3('Contribution', 'create', ['financial_type_id' => $newLineItem['financial_type_id'], 'id' => $contributionId]);
     }
   }
 

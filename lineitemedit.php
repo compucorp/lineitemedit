@@ -236,7 +236,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
       }
     }
     elseif ($op == 'edit') {
-      $lineItemParams = $newLineItem = [];
+      $newLineItemParams = $newLineItem = [];
       for ($i = 0; $i <= 10; $i++) {
         $lineItemParams[$i] = [];
         $notFound = TRUE;
@@ -324,9 +324,11 @@ function lineitemedit_civicrm_post($op, $entity, $entityID, &$obj) {
     $entityID = (string) $entityID;
     $contriParams = Civi::cache('lineitemEditor')->get($entityID);
     if (!empty($contriParams)) {
+      \CRM_Utils_Hook::pre('Contribution', 'edit', $entityID, $contriParams);
       $obj->copyValues($contriParams);
       $obj->save();
       Civi::cache('lineitemEditor')->delete($entityID);
+      \CRM_Utils_Hook::post('Contribution', 'edit', $entityID, $obj);
     }
   }
 }
