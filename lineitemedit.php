@@ -236,7 +236,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
       }
     }
     elseif ($op == 'edit') {
-      $newLineItemParams = $newLineItem = [];
+      $newLineItemParams = $lineItemParams = $newLineItem = [];
       for ($i = 0; $i <= 10; $i++) {
         $lineItemParams[$i] = [];
         $notFound = TRUE;
