@@ -39,7 +39,6 @@ class CRM_Lineitemedit_Form_AddTest extends CRM_Lineitemedit_Form_BaseTest {
 
   public function testLineItemAdditionOnBackofficeForm(): void {
     $contactID = $this->createDummyContact();
-    $form = new CRM_Contribute_Form_Contribution();
 
     $pvIDs = [];
     $itemLabels = [
@@ -67,7 +66,7 @@ class CRM_Lineitemedit_Form_AddTest extends CRM_Lineitemedit_Form_BaseTest {
       }
     }
 
-    $form->testSubmit(array(
+    $form = $this->getContributionForm([
       'total_amount' => 0,
       'financial_type_id' => $financialTypes[0],
       'contact_id' => $contactID,
@@ -79,8 +78,8 @@ class CRM_Lineitemedit_Form_AddTest extends CRM_Lineitemedit_Form_BaseTest {
       'item_qty' => $unitQuantities,
       'item_unit_price' => $unitPrices,
       'item_line_total' => $lineTotals,
-    ),
-      CRM_Core_Action::ADD);
+    ]);
+    $form->postProcess();
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('contact_id' => $contactID));
 
     $this->assertEquals($expectedTotalAmount, $contribution['total_amount']);
