@@ -55,12 +55,14 @@ class CRM_Lineitemedit_Form_SaleTax_EditTest extends CRM_Lineitemedit_Form_BaseT
     $this->assertEquals('Completed', $this->_contribution['contribution_status']);
     $this->assertEquals(110.00, $this->_contribution['total_amount']);
 
-    $form = new CRM_Lineitemedit_Form_Edit();
     $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', array('contribution_id' => $this->_contributionID));
     $lineItemInfo['qty'] += 2; // increase lineitem qty to 3
     $lineItemInfo['line_total'] *= $lineItemInfo['qty'];
     $lineItemInfo['tax_amount'] *= $lineItemInfo['qty'];
-    $form->testSubmit($lineItemInfo);
+    $_REQUEST['id'] = $lineItemInfo['id'];
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Edit', $lineItemInfo);
+    $form->buildForm();
+    $form->postProcess();
 
     // Contribution amount and status after LineItem edit
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $this->_contributionID));
@@ -132,13 +134,15 @@ class CRM_Lineitemedit_Form_SaleTax_EditTest extends CRM_Lineitemedit_Form_BaseT
     $this->assertEquals('Completed', $this->_contribution['contribution_status']);
     $this->assertEquals(110.00, $this->_contribution['total_amount']);
 
-    $form = new CRM_Lineitemedit_Form_Edit();
     $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', array(
       'contribution_id' => $this->_contributionID,
     ));
     $lineItemInfo['line_total'] = $lineItemInfo['unit_price'] -= 50;
     $lineItemInfo['tax_amount'] -= 5;
-    $form->testSubmit($lineItemInfo);
+    $_REQUEST['id'] = $lineItemInfo['id'];
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Edit', $lineItemInfo);
+    $form->buildForm();
+    $form->postProcess();
 
     // Contribution amount and status after LineItem edit
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $this->_contributionID));
@@ -217,9 +221,10 @@ class CRM_Lineitemedit_Form_SaleTax_EditTest extends CRM_Lineitemedit_Form_BaseT
       'contribution_status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Completed'),
       'price_' . $priceFieldID => array($priceFieldValues[$priceFieldID][0] => 1),
     );
-    $form = new CRM_Contribute_Form_Contribution();
+    $_REQUEST = [];
+    $form = $this->getContributionForm($params);
     $form->_priceSet = current(CRM_Price_BAO_PriceSet::getSetDetail($this->_priceSetID));
-    $form->testSubmit($params, CRM_Core_Action::ADD);
+    $form->postProcess();
 
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('contact_id' => $contactID));
 
@@ -227,12 +232,14 @@ class CRM_Lineitemedit_Form_SaleTax_EditTest extends CRM_Lineitemedit_Form_BaseT
     $this->assertEquals('Completed', $contribution['contribution_status']);
     $this->assertEquals(110.00, $contribution['total_amount']);
 
-    $form = new CRM_Lineitemedit_Form_Edit();
     $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', array('contribution_id' => $contribution['id']));
     $lineItemInfo['qty'] += 1;
     $lineItemInfo['line_total'] = $lineItemInfo['unit_price'] *= $lineItemInfo['qty'];
     $lineItemInfo['tax_amount'] *= $lineItemInfo['qty'];
-    $form->testSubmit($lineItemInfo);
+    $_REQUEST['id'] = $lineItemInfo['id'];
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Edit', $lineItemInfo);
+    $form->buildForm();
+    $form->postProcess();
 
     // Contribution amount and status after LineItem edit
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $contribution['id']));
@@ -315,9 +322,10 @@ class CRM_Lineitemedit_Form_SaleTax_EditTest extends CRM_Lineitemedit_Form_BaseT
       'contribution_status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Completed'),
       'price_' . $priceFieldID => array($priceFieldValues[$priceFieldID][0] => 1),
     );
-    $form = new CRM_Contribute_Form_Contribution();
+    $_REQUEST = [];
+    $form = $this->getContributionForm($params);
     $form->_priceSet = current(CRM_Price_BAO_PriceSet::getSetDetail($this->_priceSetID));
-    $form->testSubmit($params, CRM_Core_Action::ADD);
+    $form->postProcess();
 
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('contact_id' => $contactID));
 
@@ -325,11 +333,13 @@ class CRM_Lineitemedit_Form_SaleTax_EditTest extends CRM_Lineitemedit_Form_BaseT
     $this->assertEquals('Completed', $contribution['contribution_status']);
     $this->assertEquals(110.00, $contribution['total_amount']);
 
-    $form = new CRM_Lineitemedit_Form_Edit();
     $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', array('contribution_id' => $contribution['id']));
     $lineItemInfo['financial_type_id'] = $financialType2;
     $lineItemInfo['tax_amount'] = $lineItemInfo['tax_amount'];
-    $form->testSubmit($lineItemInfo);
+    $_REQUEST['id'] = $lineItemInfo['id'];
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Edit', $lineItemInfo);
+    $form->buildForm();
+    $form->postProcess();
 
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $contribution['id']));
     $this->assertEquals($lineItemInfo['financial_type_id'], $contribution['financial_type_id']);

@@ -55,9 +55,12 @@ class CRM_Lineitemedit_Form_SaleTax_CancelTest extends CRM_Lineitemedit_Form_Bas
     $this->assertEquals('Completed', $this->_contribution['contribution_status']);
     $this->assertEquals(110.00, $this->_contribution['total_amount']);
 
-    $form = new CRM_Lineitemedit_Form_Cancel();
     $id = CRM_Core_DAO::getFieldValue('CRM_Price_BAO_LineItem', $this->_contributionID, 'id', 'contribution_id');
-    $form->testSubmit($id);
+    $_REQUEST = ['id' => $id];
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Cancel');
+    $form->preProcess();
+    $form->buildForm();
+    $form->postProcess();
 
     // Contribution amount and status after LineItem cancel
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $this->_contributionID));
@@ -140,9 +143,10 @@ class CRM_Lineitemedit_Form_SaleTax_CancelTest extends CRM_Lineitemedit_Form_Bas
         $priceFieldValues[$priceFieldID][1] => 1,
       ),
     );
-    $form = new CRM_Contribute_Form_Contribution();
+    $_REQUEST = [];
+    $form = $this->getContributionForm($params);
     $form->_priceSet = current(CRM_Price_BAO_PriceSet::getSetDetail($this->_priceSetID));
-    $form->testSubmit($params, CRM_Core_Action::ADD);
+    $form->postProcess();
 
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('contact_id' => $contactID));
 
@@ -151,13 +155,16 @@ class CRM_Lineitemedit_Form_SaleTax_CancelTest extends CRM_Lineitemedit_Form_Bas
     $this->assertEquals(330.00, $contribution['total_amount']);
 
     // fetch one of the line-item of amount $100 to cancel
-    $form = new CRM_Lineitemedit_Form_Cancel();
     $id = $this->callAPISuccessGetValue('LineItem', array(
       'contribution_id' => $contribution['id'],
       'price_field_value_id' => $priceFieldValues[$priceFieldID][0],
       'return' => 'id',
     ));
-    $form->testSubmit($id);
+    $_REQUEST['id'] = $id;
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Cancel');
+    $form->preProcess();
+    $form->buildForm();
+    $form->postProcess();
 
     // Contribution amount and status after LineItem edit
     $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $contribution['id']));
