@@ -96,6 +96,64 @@ class CRM_Lineitemedit_Form_EditTest extends CRM_Lineitemedit_Form_BaseTest {
     $this->checkArrayEqualsByAttributes($expectedFinancialTrxnEntries, $actualFinancialTrxnEntries);
   }
 
+  public function testChangeRecurContributionAmount(): void {
+    // Contribution amount and status before LineItem edit
+    $this->assertEquals('Completed', $this->_contribution['contribution_status']);
+    $this->assertEquals(100.00, $this->_contribution['total_amount']);
+    $recurObject = civicrm_api3('ContributionRecur', 'create', [
+      'amount' => $this->_contribution['total_amount'],
+      'contact_id' => $this->_contribution['contact_id'],
+      'frequency_interval' => 1,
+      'status' => 'Pending',
+      'currency' => $this->_contribution['currency'],
+      'trxn_id' => '23456',
+    ]);
+    civicrm_api3('Contribution', 'create', [
+      'contribution_recur_id' => $recurObject['id'],
+      'id' => $this->_contribution['id'],
+    ]);
+
+    $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', array('contribution_id' => $this->_contributionID));
+    $lineItemInfo['qty'] += 1; // increase lineitem qty to 3
+    $lineItemInfo['line_total'] *= $lineItemInfo['qty'];
+    $_REQUEST['id'] = $lineItemInfo['id'];
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Edit', $lineItemInfo);
+    $form->buildForm();
+    $form->postProcess();
+
+    // Contribution amount and status after LineItem edit
+    $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $this->_contributionID));
+    $this->assertEquals('Partially paid', $contribution['contribution_status']);
+    $this->assertEquals(200.00, $contribution['total_amount']);
+
+    $updateRecurObject = civicrm_api3('ContributionRecur', 'getsingle', ['id' => $recurObject['id']]);
+    $this->assertEquals(200.00, $updateRecurObject['amount']);
+
+    $check = CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'payment_instrument_id', 'Check');
+    $actualFinancialItemEntries = $this->getFinancialItemsByContributionID($this->_contributionID);
+    $expectedFinancialItemEntries = array(
+      array(
+        'contact_id' => $this->_contactID,
+        'description' => 'Contribution Amount',
+        'amount' => 100.00,
+        'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Financial_DAO_FinancialItem', 'status_id', 'Paid'),
+      ),
+      array(
+        'contact_id' => $this->_contactID,
+        'description' => '2.00 of Contribution Amount',
+        'amount' => 100.00,
+        'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Financial_DAO_FinancialItem', 'status_id', 'Unpaid'),
+      ),
+    );
+    $this->checkArrayEqualsByAttributes($expectedFinancialItemEntries, $actualFinancialItemEntries);
+
+    civicrm_api3('Contribution', 'create', [
+      'id' => $this->_contribution['id'],
+      'contribution_recur_id' => 'null',
+    ]);
+    civicrm_api3('ContributionRecur', 'delete', ['id' => $recurObject['id']]);
+  }
+
   public function testWithoutPriceFieldID(): void {
     // Contribution amount and status before LineItem edit
     $this->assertEquals('Completed', $this->_contribution['contribution_status']);
