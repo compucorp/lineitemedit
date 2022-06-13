@@ -324,11 +324,11 @@ function lineitemedit_civicrm_post($op, $entity, $entityID, &$obj) {
     $entityID = (string) $entityID;
     $contriParams = Civi::cache('lineitemEditor')->get($entityID);
     if (!empty($contriParams)) {
-      \CRM_Utils_Hook::pre('Contribution', 'edit', $entityID, $contriParams);
+      \CRM_Utils_Hook::pre('edit', 'Contribution', $entityID, $contriParams);
       $obj->copyValues($contriParams);
       $obj->save();
       Civi::cache('lineitemEditor')->delete($entityID);
-      \CRM_Utils_Hook::post('Contribution', 'edit', $entityID, $obj);
+      \CRM_Utils_Hook::post('edit', 'Contribution', $entityID, $obj);
     }
   }
 }
