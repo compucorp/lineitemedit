@@ -74,7 +74,7 @@ CRM.$(function($) {
 
   // if you choose manual amount, then hide all other option and line-item add block
   $('#choose-manual').on('click', function() {
-    $('.crm-contribution-form-block-financial_type_id, #totalAmount, #totalAmountORaddLineitem, #totalAmountORPriceSet, #price_set_id').show();
+    $('#totalAmount, #totalAmountORaddLineitem, #totalAmountORPriceSet, #price_set_id').show();
     reset();
   });
 
@@ -102,7 +102,7 @@ CRM.$(function($) {
       $('tr.hiddenElement:first, #lineitem-add-block').show().removeClass('hiddenElement');
       fillLineItemRow($('input[id^="item_price_field_value_id"]', row).val(), row);
       if (action == 1) {
-        $('.crm-contribution-form-block-financial_type_id, #totalAmount, #totalAmountORaddLineitem, #totalAmountORPriceSet, #price_set_id').hide();
+        $('#totalAmount, #totalAmountORaddLineitem, #totalAmountORPriceSet, #price_set_id').hide();
         $( "#total_amount").val(0);
       }
     }
