@@ -507,7 +507,8 @@ ORDER BY  ps.id, pf.weight ;
         )
       );
       $contriParams['total_amount'] = $updatedAmount;
-      $contriParams['net_amount'] = $updatedAmount - CRM_Utils_Array::value('fee_amount', $updatedContribution, 0);
+      $feeAmount = CRM_Utils_Array::value('fee_amount', $updatedContribution, 0) ?: 0;
+      $contriParams['net_amount'] = $updatedAmount - $feeAmount;
       if ($taxAmount) {
         $contriParams['tax_amount'] = $taxAmount;
       }
