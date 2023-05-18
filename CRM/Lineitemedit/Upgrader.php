@@ -51,4 +51,17 @@ class CRM_Lineitemedit_Upgrader extends CRM_Lineitemedit_Upgrader_Base {
     return TRUE;
   }
 
+  /**
+   * Example: Run a couple simple queries.
+   *
+   * @return TRUE on success
+   * @throws Exception
+   *
+   */
+  public function upgrade_2500() {
+    $this->ctx->log->info('Applying update 2500');
+    CRM_Lineitemedit_Util::generatePriceField(11, 50);
+    return TRUE;
+  }
+
 }
