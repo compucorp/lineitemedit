@@ -887,7 +887,7 @@ ORDER BY  ps.id, pf.weight ;
       $pvIDs = array_keys($options);
       $form->add('select', 'add_item', ts('Add item'), ['' => '- select any price-field -'] + $options);
     }
-    for ($rowNumber = 0; $rowNumber <= 10; $rowNumber++) {
+    for ($rowNumber = 0; $rowNumber <= 50; $rowNumber++) {
       if (!empty($_POST['item_unit_price']) && !empty($_POST['item_unit_price'][$rowNumber])) {
         $submittedValues[] = $rowNumber;
       }
@@ -944,9 +944,11 @@ ORDER BY  ps.id, pf.weight ;
               'api.PriceField.get' => [
                 'sequential' => 1,
                 'price_set_id' => "\$value.id",
+                'options' => ['limit' => 0],
                 'api.PriceFieldValue.get' => [
                   'sequential' => 1,
-                  'price_field_id' => "\$value.id"
+                  'price_field_id' => "\$value.id",
+                  'options' => ['limit' => 0],
                 ],
               ],
             ]);
@@ -994,7 +996,7 @@ ORDER BY  ps.id, pf.weight ;
     return [$newPriceField['id'], $newPriceFieldValue['id']];
   }
 
-  public static function generatePriceField() {
+  public static function generatePriceField($start = 1, $end = 50) {
     $priceField = civicrm_api3('PriceField',
       'getsingle',
       [
@@ -1013,7 +1015,7 @@ ORDER BY  ps.id, pf.weight ;
     );
     $priceFieldValueParams = $priceFieldValue;
     unset($priceFieldValueParams['id'], $priceFieldValueParams['name'], $priceFieldValueParams['weight']);
-    for ($i = 1; $i <= 10; ++$i) {
+    for ($i = $start; $i <= $end; ++$i) {
       $params = array_merge($priceFieldParams, ['label' => ts('Additional Line Item') . " $i"]);
       $priceField = civicrm_api3('PriceField', 'get', $params)['values'];
       if (empty($priceField)) {
