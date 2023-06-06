@@ -887,7 +887,7 @@ ORDER BY  ps.id, pf.weight ;
       $pvIDs = array_keys($options);
       $form->add('select', 'add_item', ts('Add item'), ['' => '- select any price-field -'] + $options);
     }
-    for ($rowNumber = 0; $rowNumber <= 50; $rowNumber++) {
+    for ($rowNumber = 0; $rowNumber <= Civi::settings()->get('line_item_number'); $rowNumber++) {
       if (!empty($_POST['item_unit_price']) && !empty($_POST['item_unit_price'][$rowNumber])) {
         $submittedValues[] = $rowNumber;
       }
@@ -996,7 +996,10 @@ ORDER BY  ps.id, pf.weight ;
     return [$newPriceField['id'], $newPriceFieldValue['id']];
   }
 
-  public static function generatePriceField($start = 1, $end = 50) {
+  public static function generatePriceField($start = 1, $end = null) {
+    if (is_null($end)) {
+      $end = Civi::settings()->get('line_item_number');
+    }
     $priceField = civicrm_api3('PriceField',
       'getsingle',
       [
