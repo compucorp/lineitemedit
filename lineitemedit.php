@@ -201,7 +201,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
     if ($op == 'create' && empty($params['price_set_id'])) {
       $lineItemParams = [];
       $taxEnabled = (bool) Civi::settings()->get('invoicing');
-      for ($i = 0; $i <= 50; $i++) {
+      for ($i = 0; $i <= Civi::settings()->get('line_item_number'); $i++) {
         $lineItemParams[$i] = [];
         $notFound = TRUE;
         foreach (['item_label', 'item_financial_type_id', 'item_qty', 'item_unit_price', 'item_line_total', 'item_price_field_value_id'] as $attribute) {
