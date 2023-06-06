@@ -133,7 +133,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
     if (!empty($form->_id) && ($form->_action & CRM_Core_Action::UPDATE)) {
       $contributionID = $form->_id;
       // assign this value so Smarty can properly iterate
-      $form->assign('lineItemNumber', Civi::settings()->get('line_item_ number'));
+      $form->assign('lineItemNumber', Civi::settings()->get('line_item_number'));
       $pricesetFieldsCount = NULL;
       $isQuickConfig = empty($form->_lineItems) ? TRUE : FALSE;
       // Append line-item table only if current contribution has quick config lineitem
