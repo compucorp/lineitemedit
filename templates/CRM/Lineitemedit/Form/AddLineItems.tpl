@@ -34,7 +34,7 @@
       </tr>
     {/foreach}
   {/if}
-  {section name='i' start=0 loop=50}
+  {section name='i' start=0 loop=$lineItemNumber}
     {assign var='rowNumber' value=$smarty.section.i.index}
     <tr id="add-item-row-{$rowNumber}" class="line-item-row hiddenElement">
       <td>{$form.item_label.$rowNumber.html}</td>
