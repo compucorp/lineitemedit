@@ -3,7 +3,7 @@
 /**
  * Collection of upgrade steps.
  */
-class CRM_Lineitemedit_Upgrader extends CRM_Lineitemedit_Upgrader_Base {
+class CRM_Lineitemedit_Upgrader extends CRM_Extension_Upgrader_Base {
 
   /**
   * Example: Run an external SQL script when the module is installed.
