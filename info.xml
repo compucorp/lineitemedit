@@ -18,11 +18,21 @@
   <version>2.5</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>5.37</ver>
+    <ver>5.38</ver>
   </compatibility>
   <comments>This extension allows a backend user to add, edit and cancel line item(s) associated with a Contribution.
   </comments>
   <civix>
     <namespace>CRM/Lineitemedit</namespace>
+    <format>23.02.1</format>
   </civix>
+  <mixins>
+    <mixin>menu-xml@1.0.0</mixin>
+    <mixin>smarty-v2@1.0.1</mixin>
+  </mixins>
+  <classloader>
+    <psr0 prefix="CRM_" path="."/>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <upgrader>CRM_Lineitemedit_Upgrader</upgrader>
 </extension>
