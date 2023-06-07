@@ -49,8 +49,6 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
     $contributionID = NULL;
     if (!empty($form->_id) && ($form->_action & CRM_Core_Action::UPDATE)) {
       $contributionID = $form->_id;
-      // assign this value so Smarty can properly iterate
-      $form->assign('lineItemNumber', Civi::settings()->get('line_item_number'));
       $pricesetFieldsCount = NULL;
       $isQuickConfig = empty($form->_lineItems) ? TRUE : FALSE;
       // Append line-item table only if current contribution has quick config lineitem
@@ -75,9 +73,11 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
 
     if (!($form->_action & CRM_Core_Action::DELETE)) {
       CRM_Lineitemedit_Util::buildLineItemRows($form, $contributionID);
-      CRM_Core_Region::instance('page-body')->add(array(
+      // assign this value so Smarty can properly iterate
+      $form->assign('lineItemNumber', Civi::settings()->get('line_item_number'));
+      CRM_Core_Region::instance('page-body')->add([
         'template' => "CRM/Lineitemedit/Form/AddLineItems.tpl",
-      ));
+      ]);
     }
   }
 }
