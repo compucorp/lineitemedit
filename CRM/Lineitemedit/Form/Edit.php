@@ -61,7 +61,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
     }
 
     if ($this->_isQuickConfig || empty($this->_priceFieldInfo['is_enter_qty'])) {
-      $this->_values['qty'] = (int) $this->_values['qty'];
+      $this->_values['qty'] = (float) $this->_values['qty'];
     }
   }
 
@@ -134,9 +134,9 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
   public static function formRule($fields, $files, $self) {
     $errors = array();
 
-    if (!CRM_Utils_Rule::integer($fields['qty'])) {
+    if (!CRM_Utils_Rule::numeric($fields['qty'])) {
       if ($self->_isQuickConfig || $self->_priceFieldInfo['is_enter_qty'] == 0) {
-        $errors['qty'] = ts('Please enter a whole number quantity');
+        $errors['qty'] = ts('Please enter a numeric quantity');
       }
     }
 
