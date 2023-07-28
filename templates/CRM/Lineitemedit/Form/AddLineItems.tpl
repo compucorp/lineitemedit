@@ -34,7 +34,7 @@
       </tr>
     {/foreach}
   {/if}
-  {section name='i' start=0 loop=10}
+  {section name='i' start=0 loop=$lineItemNumber}
     {assign var='rowNumber' value=$smarty.section.i.index}
     <tr id="add-item-row-{$rowNumber}" class="line-item-row hiddenElement">
       <td>{$form.item_label.$rowNumber.html}</td>
@@ -158,10 +158,19 @@ CRM.$(function($) {
   $('input[id="total_amount"]', $form).on('change', calculateTotalAmount);
 
   function calculateTotalAmount() {
-    var thousandMarker = "{/literal}{$config->monetaryThousandSeparator}{literal}";
+    var formattedMoney = CRM.formatMoney(1234.56);
+    var thousandSeparator = ',';
+    var decimalSeparator = '.';
+
+    // Detect the thousand and decimal separators (the old core settings are going away)
+    if ((result = /1(.?)234(.?)56/.exec(formattedMoney)) !== null) {
+      thousandSeparator = result[1];
+      decimalSeparator = result[2];
+    }
+
     let total_amount = 0;
     if ($('input[id="total_amount"]').length) {
-      total_amount = parseFloat(($('input[id="total_amount"]').val().replace(thousandMarker,'') || 0));
+      total_amount = parseFloat(($('input[id="total_amount"]').val().replace(thousandSeparator,'') || 0));
     }
 
     if (!$("#total_amount").is(":hidden")) {
@@ -169,9 +178,9 @@ CRM.$(function($) {
     }
 
     $.each($('.line-item-row'), function() {
-      total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandMarker,'') || 0));
+      total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
       if ($('input[id^="item_tax_amount"]', this).length) {
-        total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandMarker,'') || 0));
+        total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
       }
     });
     $('#line-total').text(CRM.formatMoney(total_amount));

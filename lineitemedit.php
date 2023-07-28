@@ -12,13 +12,6 @@ function lineitemedit_civicrm_config(&$config) {
 }
 
 /**
- * Implements hook_civicrm_xmlMenu().
- */
-function lineitemedit_civicrm_xmlMenu(&$files) {
-  _lineitemedit_civix_civicrm_xmlMenu($files);
-}
-
-/**
  * Implements hook_civicrm_install().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
@@ -28,88 +21,12 @@ function lineitemedit_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postInstall
- */
-function lineitemedit_civicrm_postInstall() {
-  _lineitemedit_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_uninstall
- */
-function lineitemedit_civicrm_uninstall() {
-  _lineitemedit_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_enable
  */
 function lineitemedit_civicrm_enable() {
   _lineitemedit_civix_civicrm_enable();
-}
-
-/**
- * Implements hook_civicrm_disable().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_disable
- */
-function lineitemedit_civicrm_disable() {
-  _lineitemedit_civix_civicrm_disable();
-}
-
-/**
- * Implements hook_civicrm_upgrade().
- */
-function lineitemedit_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _lineitemedit_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_managed().
- *
- * Generate a list of entities to create/deactivate/delete when this module
- * is installed, disabled, uninstalled.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_managed
- */
-function lineitemedit_civicrm_managed(&$entities) {
-  _lineitemedit_civix_civicrm_managed($entities);
-}
-
-/**
- * Implements hook_civicrm_caseTypes().
- */
-function lineitemedit_civicrm_caseTypes(&$caseTypes) {
-  _lineitemedit_civix_civicrm_caseTypes($caseTypes);
-}
-
-/**
- * Implements hook_civicrm_angularModules().
- *
- * Generate a list of Angular modules.
- *
- * Note: This hook only runs in CiviCRM 4.5+. It may
- * use features only available in v4.6+.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
- */
-function lineitemedit_civicrm_angularModules(&$angularModules) {
-  _lineitemedit_civix_civicrm_angularModules($angularModules);
-}
-
-/**
- * Implements hook_civicrm_alterSettingsFolders().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders
- */
-function lineitemedit_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _lineitemedit_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
 /**
@@ -156,9 +73,11 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
 
     if (!($form->_action & CRM_Core_Action::DELETE)) {
       CRM_Lineitemedit_Util::buildLineItemRows($form, $contributionID);
-      CRM_Core_Region::instance('page-body')->add(array(
+      // assign this value so Smarty can properly iterate
+      $form->assign('lineItemNumber', Civi::settings()->get('line_item_number'));
+      CRM_Core_Region::instance('page-body')->add([
         'template' => "CRM/Lineitemedit/Form/AddLineItems.tpl",
-      ));
+      ]);
     }
   }
 }
@@ -201,7 +120,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
     if ($op == 'create' && empty($params['price_set_id'])) {
       $lineItemParams = [];
       $taxEnabled = (bool) Civi::settings()->get('invoicing');
-      for ($i = 0; $i <= 10; $i++) {
+      for ($i = 0; $i <= Civi::settings()->get('line_item_number'); $i++) {
         $lineItemParams[$i] = [];
         $notFound = TRUE;
         foreach (['item_label', 'item_financial_type_id', 'item_qty', 'item_unit_price', 'item_line_total', 'item_price_field_value_id'] as $attribute) {
