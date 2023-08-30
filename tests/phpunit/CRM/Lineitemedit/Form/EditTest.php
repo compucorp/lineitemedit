@@ -112,7 +112,8 @@ class CRM_Lineitemedit_Form_EditTest extends CRM_Lineitemedit_Form_BaseTest {
       'contribution_recur_id' => $recurObject['id'],
       'id' => $this->_contribution['id'],
     ]);
-
+    // Ensure that the template contribution is created
+    $templateRecurringContribution = CRM_Contribute_BAO_ContributionRecur::ensureTemplateContributionExists($recurObject['id']);
     $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', array('contribution_id' => $this->_contributionID));
     $lineItemInfo['qty'] += 1; // increase lineitem qty to 3
     $lineItemInfo['line_total'] *= $lineItemInfo['qty'];
@@ -126,6 +127,22 @@ class CRM_Lineitemedit_Form_EditTest extends CRM_Lineitemedit_Form_BaseTest {
     $this->assertEquals('Partially paid', $contribution['contribution_status']);
     $this->assertEquals(200.00, $contribution['total_amount']);
 
+    // Recurring object shouldn't have been update as it was not the template that was updated
+    $updateRecurObject = civicrm_api3('ContributionRecur', 'getsingle', ['id' => $recurObject['id']]);
+    $this->assertEquals(100.00, $updateRecurObject['amount']);
+
+    $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', array('contribution_id' => $templateRecurringContribution));
+    $lineItemInfo['qty'] += 1; // increase lineitem qty to 3
+    $lineItemInfo['line_total'] *= $lineItemInfo['qty'];
+    $_REQUEST['id'] = $lineItemInfo['id'];
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Edit', $lineItemInfo);
+    $form->buildForm();
+    $form->postProcess();
+    // Contribution amount and status after LineItem edit
+    $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $templateRecurringContribution));
+    $this->assertEquals(200.00, $contribution['total_amount']);
+
+    // Recurring object should update as we are now updating the template contribution
     $updateRecurObject = civicrm_api3('ContributionRecur', 'getsingle', ['id' => $recurObject['id']]);
     $this->assertEquals(200.00, $updateRecurObject['amount']);
 
@@ -146,11 +163,30 @@ class CRM_Lineitemedit_Form_EditTest extends CRM_Lineitemedit_Form_BaseTest {
       ),
     );
     $this->checkArrayEqualsByAttributes($expectedFinancialItemEntries, $actualFinancialItemEntries);
+    $actualFinancialTrxnEntries = $this->getFinancialTrxnsByContributionID($this->_contributionID);
+    $expectedFinancialTrxnEntries = array(
+      array(
+        'total_amount' => 100.00,
+        'net_amount' => 100.00,
+        'is_payment' => 1,
+        'payment_instrument_id' => $check,
+        'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Completed'),
+      ),
+      array(
+        'total_amount' => 100.00,
+        'net_amount' => 100.00,
+        'is_payment' => 0,
+        'payment_instrument_id' => $check,
+        'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Partially paid'),
+      ),
+    );
+    $this->checkArrayEqualsByAttributes($expectedFinancialTrxnEntries, $actualFinancialTrxnEntries);
 
     civicrm_api3('Contribution', 'create', [
       'id' => $this->_contribution['id'],
       'contribution_recur_id' => 'null',
     ]);
+    civicrm_api3('Contribution', 'delete', ['id' => $templateRecurringContribution]);
     civicrm_api3('ContributionRecur', 'delete', ['id' => $recurObject['id']]);
   }
 
