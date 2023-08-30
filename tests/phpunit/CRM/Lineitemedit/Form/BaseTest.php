@@ -184,6 +184,7 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
   }
 
   public function checkArrayEqualsByAttributes($expectedEntries, $actualEntries) {
+    $this->assertEquals(count(array_keys($expectedEntries)), count(array_keys($actualEntries)));
     foreach ($expectedEntries as $key => $expectedEntry) {
       foreach ($expectedEntry as $attribute => $expectedValue) {
         $this->assertEquals($expectedValue, $actualEntries[$key][$attribute], "mismatch found for $attribute attribute");
