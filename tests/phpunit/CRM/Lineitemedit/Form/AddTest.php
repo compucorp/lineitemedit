@@ -37,6 +37,13 @@ class CRM_Lineitemedit_Form_AddTest extends CRM_Lineitemedit_Form_BaseTest {
     parent::tearDown();
   }
 
+  public function testAdditionalLineItemsHavebeenCreated(): void {
+    $priceFields = $this->callAPISuccess('PriceField', 'get', [
+      'price_set_id' => 'default_contribution_amount',
+    ]);
+    $this->assertCount(11, $priceFields['values']);
+  }
+
   public function testLineItemAdditionOnBackofficeForm(): void {
     $contactID = $this->createDummyContact();
 

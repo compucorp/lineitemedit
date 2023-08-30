@@ -998,7 +998,7 @@ ORDER BY  ps.id, pf.weight ;
 
   public static function generatePriceField($start = 1, $end = null) {
     if (is_null($end)) {
-      $end = Civi::settings()->get('line_item_number');
+      $end = Civi::settings()->get('line_item_number') ?? 10;
     }
     $priceField = civicrm_api3('PriceField',
       'getsingle',

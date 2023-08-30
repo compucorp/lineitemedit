@@ -20,7 +20,7 @@ use Civi\Test\TransactionalInterface;
  */
 class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
-  use \Civi\Test\Api3DocTrait;
+  use \Civi\Test\Api3TestTrait;
   protected $_contactID;
   protected $_contributionID;
   protected $_contribution;
