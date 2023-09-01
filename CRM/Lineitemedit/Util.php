@@ -1047,4 +1047,17 @@ ORDER BY  ps.id, pf.weight ;
     }
   }
 
+  /**
+   * Update the number of additional line item fields that are in the database based on changing
+   */
+  public static function settingChange($oldNumberPriceFields, $newNumberPriceFields, $metadata): void {
+    if ($oldNumberPriceFields == $newNumberPriceFields) {
+      return;
+    }
+    if ($newNumberPriceFields < $oldNumberPriceFields) {
+      return;
+    }
+    self::generatePriceField((float) $oldNumberPriceFields + 1, $newNumberPriceFields);
+  }
+
 }
