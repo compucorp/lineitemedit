@@ -144,7 +144,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
             $lineItemParams[$i]['tax_amount'] = (float) CRM_Utils_Array::value($i, $params['item_tax_amount'], 0.00);
             $params['tax_amount'] += $lineItemParams[$i]['tax_amount'];
           }
-          if (!in_array($params['item_financial_type_id'], $financialTypes) && isset($params['item_financial_type_id'][$i])) {
+          if (!in_array($params['item_financial_type_id'], $financialTypes) && !empty($params['item_financial_type_id'][$i])) {
             $financialTypes[] = $params['item_financial_type_id'][$i];
           }
           $params['total_amount'] = $params['amount'] += (CRM_Utils_Array::value('line_total', $lineItemParams[$i], 0.00) + CRM_Utils_Array::value('tax_amount', $lineItemParams[$i], 0.00));
