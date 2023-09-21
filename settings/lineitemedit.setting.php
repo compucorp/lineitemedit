@@ -13,5 +13,6 @@ return [
     'is_contact' => 0,
     'description' => E::ts('Limits the number of lines shown'),
     'settings_pages' => ['contribute' => ['weight' => 10]],
+    'on_change' => ['CRM_Lineitemedit_Util::settingChange'],
   ]
 ];
