@@ -12,7 +12,34 @@
     <span id='choose-manual'><a href=# class="action-item crm-hover-button">{ts}Choose manual contribution amount{/ts}</a></span>
   {/if}
 <table id='info'>
-  <tr class="line-item-columnheader">
+  <!-- Add Tax Search Display if tax is enabled -->
+  {if $taxEnabled}
+    <crm-angular-js modules="afLineItemsTax">
+      <form id="bootstrap-theme">
+        <af-line-items-tax options="{ldelim}id: {$contribution_id}{rdelim}" >
+        </af-line-items-tax>
+      </form>
+    </crm-angular-js>
+
+  <!-- Add Line Item Search Display without tax col -->
+  {else}
+    <crm-angular-js modules="afLineItems">
+      <form id="bootstrap-theme">
+        <af-line-items options="{ldelim}id: {$contribution_id}{rdelim}" >
+        </af-line-items>
+      </form>
+    </crm-angular-js>
+  {/if}
+
+  <table id='info'>
+
+  {if !empty($lineItemTable)}
+    {foreach from=$lineItemTable.rows item=row}
+      <tr class="lineitem-info-row"></tr>
+    {/foreach}
+  {/if}
+
+  <tr id="column-header" class="line-item-columnheader hiddenElement">
     <th>{ts}Item{/ts}</th>
     <th>{ts}Financial Type{/ts}</th>
     <th>{ts}Qty{/ts}</th>
@@ -21,19 +48,6 @@
     {if $taxEnabled}<th>{ts}Tax Amount{/ts}</th>{/if}
     <th></th>
   </tr>
-  {if !empty($lineItemTable)}
-    {foreach from=$lineItemTable.rows item=row}
-      <tr class="lineitem-info-row">
-        <td>{$row.item}</td>
-        <td>{$row.financial_type}</td>
-        <td>{$row.qty}</td>
-        <td>{$row.unit_price|crmMoney:$row.currency}</td>
-        <td>{$row.total_price|crmMoney:$row.currency}</td>
-        {if $taxEnabled}<td>{$row.tax_amount|crmMoney:$row.currency}</td>{/if}
-        <td>{$row.actions}</td>
-      </tr>
-    {/foreach}
-  {/if}
   {section name='i' start=0 loop=$lineItemNumber}
     {assign var='rowNumber' value=$smarty.section.i.index}
     <tr id="add-item-row-{$rowNumber}" class="line-item-row hiddenElement">
@@ -97,6 +111,10 @@ CRM.$(function($) {
     }
   });
   $('#add-items, #add-another-item').on('click', function() {
+    if($('#column-header').hasClass("hiddenElement")){
+      $('#column-header').show().removeClass('hiddenElement');
+    }
+
     if ($('tr.line-item-row').hasClass("hiddenElement")) {
       var row = $('#lineitem-add-block tr.hiddenElement:first');
       $('tr.hiddenElement:first, #lineitem-add-block').show().removeClass('hiddenElement');

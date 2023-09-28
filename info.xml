@@ -22,6 +22,10 @@
   </compatibility>
   <comments>This extension allows a backend user to add, edit and cancel line item(s) associated with a Contribution.
   </comments>
+  <requires>
+    <ext>org.civicrm.afform</ext>
+    <ext>org.civicrm.search_kit</ext>
+  </requires>
   <civix>
     <namespace>CRM/Lineitemedit</namespace>
     <format>23.02.1</format>
