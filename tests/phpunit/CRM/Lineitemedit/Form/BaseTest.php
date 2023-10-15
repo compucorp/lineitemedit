@@ -309,8 +309,8 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
     $this->createPriceSet($priceFieldParams, $priceSetParams);
     CRM_Price_BAO_PriceSet::addTo('civicrm_event', $event['id'], $this->_priceSetID);
     $priceSet = CRM_Price_BAO_PriceSet::getSetDetail($this->_priceSetID, TRUE, FALSE);
-    $priceSet = CRM_Utils_Array::value($this->_priceSetID, $priceSet);
-    $this->_eventFeeBlock = CRM_Utils_Array::value('fields', $priceSet);
+    $priceSet = $priceSet[$this->_priceSetID] ?? NULL;
+    $this->_eventFeeBlock = $priceSet['fields'] ?? NULL;
 
     return $event;
   }

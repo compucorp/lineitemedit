@@ -41,9 +41,9 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
   public function assignFormVariables($params = []) {
 
     $this->_lineitemInfo = civicrm_api3('lineItem', 'getsingle', array('id' => $this->_id));
-    $this->_lineitemInfo['tax_amount'] = CRM_Utils_Array::value('tax_amount', $this->_lineitemInfo, 0.00);
+    $this->_lineitemInfo['tax_amount'] = $this->_lineitemInfo['tax_amount'] ?? 0.00;
     foreach (CRM_Lineitemedit_Util::getLineitemFieldNames() as $attribute) {
-      $this->_values[$attribute] = CRM_Utils_Array::value($attribute, $this->_lineitemInfo, 0);
+      $this->_values[$attribute] = $this->_lineitemInfo[$attribute] ?? 0;
     }
 
     $this->_values['currency'] = CRM_Core_DAO::getFieldValue(
@@ -159,16 +159,16 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
     );
 
     if (!$this->isTaxEnabledInFinancialType($values['financial_type_id'])) {
-      $values['tax_amount'] = '';
+      $values['tax_amount'] = 0.00;
     }
     $params = array(
       'id' => $this->_id,
       'financial_type_id' => $values['financial_type_id'],
       'label' => $values['label'],
       'qty' => $values['qty'],
-      'unit_price' => CRM_Utils_Rule::cleanMoney($values['unit_price']),
+      'unit_price' => Civi::format()->machineMoney($values['unit_price']),
       'line_total' => $values['line_total'],
-      'tax_amount' => CRM_Utils_Rule::cleanMoney(CRM_Utils_Array::value('tax_amount', $values, 0.00)),
+      'tax_amount' => Civi::format()->machineMoney(($values['tax_amount'] ?? 0.00)),
     );
 
     $lineItem = CRM_Price_BAO_LineItem::create($params);
