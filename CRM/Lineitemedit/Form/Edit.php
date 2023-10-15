@@ -145,11 +145,6 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
 
   public function postProcess() {
     $values = $this->exportValues();
-    $this->submit($values);
-    parent::postProcess();
-  }
-
-  public function submit($values, $isTest = FALSE) {
     $values['line_total'] = CRM_Utils_Rule::cleanMoney($values['line_total']);
 
     $balanceAmount = ($values['line_total'] - $this->_lineitemInfo['line_total']);
@@ -194,10 +189,9 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
     if (in_array($this->_lineitemInfo['entity_table'], ['civicrm_membership', 'civicrm_participant']) && !empty($lineItem['entity_id'])) {
       $this->updateEntityRecord($this->_lineitemInfo);
       $entityTab = ($this->_lineitemInfo['entity_table'] == 'civicrm_membership') ? 'member' : 'participant';
-      if (!$isTest) {
-        $this->ajaxResponse['updateTabs']['#tab_' . $entityTab] = CRM_Contact_BAO_Contact::getCountComponent(str_replace('civicrm_', '', $this->_lineitemInfo['entity_table']), $contactId);
-      }
+      $this->ajaxResponse['updateTabs']['#tab_' . $entityTab] = CRM_Contact_BAO_Contact::getCountComponent(str_replace('civicrm_', '', $this->_lineitemInfo['entity_table']), $contactId);
     }
+    parent::postProcess();
   }
 
   protected function updateEntityRecord($lineItem) {
@@ -244,12 +238,6 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
       //activity creation
       CRM_Event_BAO_Participant::addActivityForSelection($lineItem['entity_id'], 'Change Registration');
     }
-  }
-
-  public function testSubmit($params) {
-    $this->_id = (int) $params['id'];
-    $this->assignFormVariables($params);
-    $this->submit($params, TRUE);
   }
 
 }
