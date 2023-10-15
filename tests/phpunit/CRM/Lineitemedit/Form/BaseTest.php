@@ -217,7 +217,7 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
       'tax_rate' => 10,
       'is_active' => 1,
     );
-    $account = CRM_Financial_BAO_FinancialAccount::add($params);
+    $account = CRM_Financial_BAO_FinancialAccount::writeRecord($params);
     $entityParams = array(
       'entity_table' => 'civicrm_financial_type',
       'entity_id' => $financialTypeId,

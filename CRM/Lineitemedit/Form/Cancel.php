@@ -15,6 +15,8 @@ class CRM_Lineitemedit_Form_Cancel extends CRM_Core_Form {
 
   public $_prevContributionID = NULL;
 
+  public $_id;
+
   public function preProcess() {
     $this->_id = CRM_Utils_Request::retrieve('id', 'Positive', $this);
     $this->assignFormVariables();
