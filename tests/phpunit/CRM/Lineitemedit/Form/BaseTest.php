@@ -20,7 +20,7 @@ use Civi\Test\TransactionalInterface;
  */
 class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
-  use \Civi\Test\Api3DocTrait;
+  use \Civi\Test\Api3TestTrait;
   protected $_contactID;
   protected $_contributionID;
   protected $_contribution;
@@ -186,7 +186,7 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
   public function checkArrayEqualsByAttributes($expectedEntries, $actualEntries) {
     foreach ($expectedEntries as $key => $expectedEntry) {
       foreach ($expectedEntry as $attribute => $expectedValue) {
-        $this->assertEquals($actualEntries[$key][$attribute], $expectedValue, "mismatch found for $attribute attribute");
+        $this->assertEquals($expectedValue, $actualEntries[$key][$attribute], "mismatch found for $attribute attribute");
       }
     }
   }

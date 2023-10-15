@@ -119,6 +119,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
   if ($entity == 'Contribution') {
     if ($op == 'create' && empty($params['price_set_id'])) {
       $lineItemParams = [];
+      $financialTypes = [];
       $taxEnabled = (bool) Civi::settings()->get('invoicing');
       for ($i = 0; $i <= Civi::settings()->get('line_item_number'); $i++) {
         $lineItemParams[$i] = [];
@@ -143,6 +144,9 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
             $lineItemParams[$i]['tax_amount'] = (float) CRM_Utils_Array::value($i, $params['item_tax_amount'], 0.00);
             $params['tax_amount'] += $lineItemParams[$i]['tax_amount'];
           }
+          if (!in_array($params['item_financial_type_id'], $financialTypes) && !empty($params['item_financial_type_id'][$i])) {
+            $financialTypes[] = $params['item_financial_type_id'][$i];
+          }
           $params['total_amount'] = $params['amount'] += (CRM_Utils_Array::value('line_total', $lineItemParams[$i], 0.00) + CRM_Utils_Array::value('tax_amount', $lineItemParams[$i], 0.00));
           $params['net_amount'] = $params['total_amount'] - $params['fee_amount'] ?? 0;
           if (!empty($lineItemParams[$i]['line_total']) && !empty($lineItemParams[$i]['price_field_id'])) {
@@ -152,6 +156,10 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
             }
           }
         }
+      }
+      // If we have line Item financial types. Pick the first one to set the contribution to.
+      if (count($financialTypes) > 0) {
+        $params['financial_type_id'] = $financialTypes[0];
       }
     }
     elseif ($op == 'edit') {
