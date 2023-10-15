@@ -167,8 +167,8 @@ class CRM_Lineitemedit_Util {
    *       total tax amount in money format
    */
   public static function getTaxAmountTotalFromContributionID($contributionID) {
-    $taxAmount = CRM_Core_DAO::singleValueQuery("SELECT SUM(COALESCE(tax_amount,0)) FROM civicrm_line_item WHERE contribution_id = $contributionID AND qty > 0 ");
-    return CRM_Utils_Money::format($taxAmount, NULL, NULL, TRUE);
+    $taxAmount = CRM_Core_DAO::singleValueQuery("SELECT SUM(tax_amount) FROM civicrm_line_item WHERE contribution_id = %1 AND qty > 0 ", [1 => [$contributionID, 'Positive']]) ?? '0.00';
+    return Civi::format()->machineMoney($taxAmount);
   }
 
   /**
