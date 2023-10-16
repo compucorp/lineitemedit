@@ -712,6 +712,7 @@ ORDER BY  ps.id, pf.weight ;
       'tax_amount' => -$prevLineItem['tax_amount'],
       'tax_ft' => $prevLineItem['financial_type_id'],
       'deferred_line_item' => $prevLineItem,
+      'new_tax_ft' => $newLineItem['financial_type_id'],
     );
     $taxRates = CRM_Core_PseudoConstant::getTaxRates();
     $taxRates = CRM_Utils_Array::value($newLineItem['financial_type_id'], $taxRates, 0);
@@ -721,6 +722,7 @@ ORDER BY  ps.id, pf.weight ;
       'fi_amount' => $prevLineItem['line_total'],
       'tax_amount' => $newtax['tax_amount'],
       'tax_ft' => $newLineItem['financial_type_id'],
+      'new_tax_ft' => $newLineItem['financial_type_id'],
       'deferred_line_item' => $newLineItem,
     );
     $trxnArray[2]['financial_account_id'] = CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($newLineItem['financial_type_id'], $accountRelName);
@@ -731,28 +733,6 @@ ORDER BY  ps.id, pf.weight ;
     $trxnArray[2]['to_financial_account_id'] = CRM_Financial_BAO_FinancialTypeAccount::getInstrumentFinancialAccount($contribution['payment_instrument_id']);
 
     $financialItem['status_id'] = CRM_Core_PseudoConstant::getKey('CRM_Financial_DAO_FinancialItem', 'status_id', 'Paid');
-    foreach ($trxnArray as $values) {
-      $trxnId = self::createFinancialTrxnEntry($contributionId, $values['ft_amount'], $values['to_financial_account_id']);
-      if (!empty($values['financial_account_id'])) {
-        $financialItem['financial_account_id'] = $values['financial_account_id'];
-      }
-      $financialItem['amount'] = $values['fi_amount'];
-      $trxnId = array('id' => $trxnId);
-      $ftItem = CRM_Financial_BAO_FinancialItem::create($financialItem, NULL, $trxnId);
-      if ($values['tax_amount'] != 0) {
-        $taxTerm = Civi::settings()->get('tax_term');
-        $taxFinancialItemInfo = array_merge($financialItem, array(
-          'amount' => $values['tax_amount'],
-          'description' => $taxTerm,
-          'financial_account_id' => CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($values['tax_ft'], 'Sales Tax Account is'),
-        ));
-        // create financial item for tax amount related to added line item
-        CRM_Financial_BAO_FinancialItem::create($taxFinancialItemInfo, NULL, $trxnId);
-      }
-      $values['deferred_line_item']['financial_item_id'] = $ftItem->id;
-      self::createDeferredTrxn($contributionId, $values['deferred_line_item'], 'UpdateLineItem');
-    }
-
     $changeFinancialType = TRUE;
     // find the total number of lineitem
     $totalLineItem = civicrm_api3('LineItem', 'getcount', ['contribution_id' => $contributionId]);
@@ -764,6 +744,72 @@ ORDER BY  ps.id, pf.weight ;
     if ($changeFinancialType) {
       civicrm_api3('Contribution', 'create', ['financial_type_id' => $newLineItem['financial_type_id'], 'id' => $contributionId]);
     }
+    foreach ($trxnArray as $values) {
+      // if we are changing the contribution financial type it will automatically record the reversal for us.
+      if (!$changeFinancialType) {
+        $trxnId = self::createFinancialTrxnEntry($contributionId, $values['ft_amount'], $values['to_financial_account_id']);
+        if (!empty($values['financial_account_id'])) {
+          $financialItem['financial_account_id'] = $values['financial_account_id'];
+        }
+        $financialItem['amount'] = $values['fi_amount'];
+        $trxnId = array('id' => $trxnId);
+        $ftItem = CRM_Financial_BAO_FinancialItem::create($financialItem, NULL, $trxnId);
+        $fiId = $ftItem->id;
+      }
+      else {
+        $isPayment = 1;
+        $toFinancialAccount = $values['to_financial_account_id'];
+        if (!$toFinancialAccount) {
+          $toFinancialAccount = CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($contribution['financial_type_id'], 'Accounts Receivable Account is');
+          $isPayment = 0;
+        }
+
+        $trxnId = CRM_Core_DAO::singleValueQuery("SELECT ft.id
+          FROM civicrm_entity_financial_trxn eft
+          INNER JOIN civicrm_financial_trxn ft ON ft.id = eft.financial_trxn_id
+          WHERE eft.entity_id = %1 AND eft.entity_table = 'civicrm_contribution'
+          AND ft.to_financial_account_id = %2 AND ft.is_payment = %3", [
+            1 => [$contributionId, 'Positive'],
+            2 => [$toFinancialAccount, 'Positive'],
+            3 => [$isPayment, 'Integer'],
+          ]);
+        $fiId = CRM_Core_DAO::singleValueQuery("SELECT entity_id FROM civicrm_entity_financial_trxn WHERE financial_trxn_id = %1 AND entity_table = 'civicrm_financial_item'", [1 => [$trxnId, 'Positive']]);
+        $trxnId = ['id' => $trxnId];
+      }
+      if ($values['tax_amount'] != 0) {
+        $taxTerm = Civi::settings()->get('tax_term');
+        $taxFinancialItemInfo = array_merge($financialItem, array(
+          'amount' => $values['tax_amount'],
+          'description' => $taxTerm,
+          'financial_account_id' => CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($values['tax_ft'], 'Sales Tax Account is'),
+        ));
+        if (!$changeFinancialType) {
+          // create financial item for tax amount related to added line item
+          CRM_Financial_BAO_FinancialItem::create($taxFinancialItemInfo, NULL, $trxnId);
+        }
+        elseif ($values['ft_amount'] < 0) {
+          // if we are changing the financial type using contribute.create then because in edit form we had already change the line item's FT type before we got to the contribution.create
+          // The sales tax reversal will have been done using the wrong financial account id. Here we re-set this. This is locked in via CRM_Lineitemedit_Form_SaleTax_EditTest::testFinancialTypeChangeWithPriceSet unit test
+          $salesTaxItem = CRM_Core_DAO::singleValueQuery("SELECT fi.id
+            FROM civicrm_entity_financial_trxn eft
+            INNER JOIN civicrm_entity_financial_trxn eft2 ON eft2.financial_trxn_id = eft.financial_trxn_id
+            INNER JOIN civicrm_financial_item fi ON fi.id = eft2.entity_id AND eft2.entity_table = 'civicrm_financial_item'
+            WHERE eft.entity_id = %1 AND eft.entity_table = 'civicrm_contribution'
+            AND fi.financial_account_id = %2 AND fi.amount = %3", [
+              1 => [$contributionId, 'Positive'],
+              2 => [CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($values['new_tax_ft'], 'Sales Tax Account is'), 'Positive'],
+              3 => [$values['tax_amount'], 'String'],
+            ]);
+          CRM_Core_DAO::executeQuery("UPDATE civicrm_financial_item SET financial_account_id = %1 WHERE id = %2", [
+            1 => [CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($values['tax_ft'], 'Sales Tax Account is'), 'Positive'],
+            2 => [$salesTaxItem, 'Positive'],
+          ]);
+        }
+      }
+      $values['deferred_line_item']['financial_item_id'] = $fiId;
+      self::createDeferredTrxn($contributionId, $values['deferred_line_item'], 'UpdateLineItem');
+    }
+
   }
 
   public static function createFinancialTrxnEntry($contributionId, $amount, $toFinancialAccount = NULL) {
