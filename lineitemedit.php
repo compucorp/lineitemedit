@@ -141,13 +141,13 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
         }
         else {
           if ($taxEnabled) {
-            $lineItemParams[$i]['tax_amount'] = (float) CRM_Utils_Array::value($i, $params['item_tax_amount'], 0.00);
+            $lineItemParams[$i]['tax_amount'] = (float) $params['item_tax_amount'][$i] ?? 0.00;
             $params['tax_amount'] += $lineItemParams[$i]['tax_amount'];
           }
           if (!in_array($params['item_financial_type_id'], $financialTypes) && !empty($params['item_financial_type_id'][$i])) {
             $financialTypes[] = $params['item_financial_type_id'][$i];
           }
-          $params['total_amount'] = $params['amount'] += (CRM_Utils_Array::value('line_total', $lineItemParams[$i], 0.00) + CRM_Utils_Array::value('tax_amount', $lineItemParams[$i], 0.00));
+          $params['total_amount'] = $params['amount'] += ((float) ($lineItemParams[$i]['line_total'] ?? 0.00) + (float) ($lineItemParams[$i]['tax_amount'] ?? 0.00));
           $params['net_amount'] = $params['total_amount'] - $params['fee_amount'] ?? 0;
           if (!empty($lineItemParams[$i]['line_total']) && !empty($lineItemParams[$i]['price_field_id'])) {
             $priceSetID = CRM_Core_DAO::getFieldValue('CRM_Price_BAO_PriceField', $lineItemParams[$i]['price_field_id'], 'price_set_id');
@@ -208,7 +208,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
           'line_total' => CRM_Utils_Rule::cleanMoney($lineItem['line_total']),
           'price_field_value_id' => $lineItem['price_field_value_id'],
           'financial_type_id' => $lineItem['financial_type_id'],
-          'tax_amount' => CRM_Utils_Array::value('tax_amount', $lineItem),
+          'tax_amount' => $lineItem['tax_amount'] ?? '0.00',
         );
       }
 
