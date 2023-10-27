@@ -197,22 +197,26 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
   protected function updateEntityRecord($lineItem) {
     $params = ['id' => $lineItem['entity_id']];
     if (($lineItem['entity_table'] == 'civicrm_membership')) {
+      $membership = \Civi\Api4\Membership::update(TRUE)
+        ->addWhere('id', '=', $lineItem['entity_id']);
+
       if (!empty($lineItem['price_field_value_id'])) {
         $memberNumTerms = CRM_Core_DAO::getFieldValue('CRM_Price_DAO_PriceFieldValue', $lineItem['price_field_value_id'], 'membership_num_terms');
         $membershipTypeId = CRM_Core_DAO::getFieldValue('CRM_Price_DAO_PriceFieldValue', $lineItem['price_field_value_id'], 'membership_type_id');
         $memberNumTerms = empty($memberNumTerms) ? 1 : $memberNumTerms;
         $memberNumTerms = $lineItem['qty'] * $memberNumTerms;
-        $params['num_terms'] = $memberNumTerms;
-        $params['membership_type_id'] = $membershipTypeId;
+        $membership->addValue('num_terms', $memberNumTerms);
+        $membership->addValue('membership_type_id', $membershipTypeId);
       }
       if ($lineItem['qty'] == 0) {
-        $params['status_id'] = 'Cancelled';
-        $params['is_override'] = TRUE;
+        $membership->addValue('status_id', 'Cancelled');
+        $membership->addValue('is_override', TRUE);
       }
       else {
-        $params['skipStatusCal'] = FALSE;
+        $membership->addValue('skipStatusCal', FALSE);
       }
-      civicrm_api3('Membership', 'create', $params);
+
+      $membership->execute();
     }
     else {
       $line = array();
