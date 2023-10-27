@@ -11,34 +11,32 @@
   {if $action eq 1}
     <span id='choose-manual'><a href=# class="action-item crm-hover-button">{ts}Choose manual contribution amount{/ts}</a></span>
   {/if}
-<table id='info'>
+
   <!-- Add Tax Search Display if tax is enabled -->
   {if $taxEnabled}
-    <crm-angular-js modules="afLineItemsTax">
-      <form id="bootstrap-theme">
-        <af-line-items-tax options="{ldelim}id: {$contribution_id}{rdelim}" >
-        </af-line-items-tax>
-      </form>
-    </crm-angular-js>
+      <crm-angular-js modules="afLineItemsTax">
+        <div id="bootstrap-theme">
+          <af-line-items-tax options="{ldelim}id: {$contribution_id}{rdelim}">
+          </af-line-items-tax>
+        </div>
+      </crm-angular-js>
 
   <!-- Add Line Item Search Display without tax col -->
   {else}
-    <crm-angular-js modules="afLineItems">
-      <form id="bootstrap-theme">
-        <af-line-items options="{ldelim}id: {$contribution_id}{rdelim}" >
-        </af-line-items>
-      </form>
-    </crm-angular-js>
+      <crm-angular-js modules="afLineItems">
+        <div id="bootstrap-theme">
+          <af-line-items options="{ldelim}id: {$contribution_id}{rdelim}">
+          </af-line-items>
+        </div>
+      </crm-angular-js>
   {/if}
 
   <table id='info'>
-
   {if !empty($lineItemTable)}
     {foreach from=$lineItemTable.rows item=row}
       <tr class="lineitem-info-row"></tr>
     {/foreach}
   {/if}
-
   <tr id="column-header" class="line-item-columnheader hiddenElement">
     <th>{ts}Item{/ts}</th>
     <th>{ts}Financial Type{/ts}</th>
