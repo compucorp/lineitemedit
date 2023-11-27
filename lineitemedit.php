@@ -49,7 +49,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
   {
     Civi::resources()->addBundle('bootstrap3');
   }
-  
+
   if ($formName == 'CRM_Contribute_Form_Contribution') {
     $contributionID = NULL;
     if (!empty($form->_id) && ($form->_action & CRM_Core_Action::UPDATE)) {
@@ -78,7 +78,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
 
     if (!($form->_action & CRM_Core_Action::DELETE)) {
       $form->assign('contribution_id',$contributionID);
-      Civi::service('angularjs.loader')->addModules('afLineItems','afLineItemsTax');
+      Civi::service('angularjs.loader')->addModules(['afLineItems', 'afLineItemsTax']);
 
       CRM_Lineitemedit_Util::buildLineItemRows($form, $contributionID);
       // assign this value so Smarty can properly iterate
