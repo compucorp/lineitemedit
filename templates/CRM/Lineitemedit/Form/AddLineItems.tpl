@@ -190,6 +190,7 @@ CRM.$(function($) {
 
     total_amount = handleTotalAmountOnUpdate(total_amount);
     $('#line-total').text(CRM.formatMoney(total_amount));
+    $('#line-total').data('raw-total', total_amount).trigger('datachanged');
 
     return total_amount;
   }
