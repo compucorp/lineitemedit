@@ -65,205 +65,251 @@
   <span class="label"><strong>{ts}Total Amount{/ts}:</strong>&nbsp;</span>
   <span id="line-total"></span></div>
 </div>
-{literal}
+
 <script type="text/javascript">
-CRM.$(function($) {
-  calculateTotalAmount();
-  var isSubmitted = false,
-  submittedRows = $.parseJSON('{/literal}{$lineItemSubmitted}{literal}'),
-  action = '{/literal}{$action}{literal}'
-  isNotQuickConfig = '{/literal}{$pricesetFieldsCount}{literal}';
+  var contributionId = '{$contribution_id}';
+  {literal}
+  CRM.$(function($) {
+    calculateTotalAmountOnLoad();
+    var isSubmitted = false,
+    submittedRows = $.parseJSON('{/literal}{$lineItemSubmitted}{literal}'),
+    action = '{/literal}{$action}{literal}'
+    isNotQuickConfig = '{/literal}{$pricesetFieldsCount}{literal}';
 
-  if (!isNotQuickConfig && action == 2) {
-    $('#totalAmountORaddLineitem, #add_item').hide();
-  }
-
-  // after form rule validation when page reloads then show only those line-item which were chosen and hide others
-  $.each(submittedRows, function(e, num) {
-    isSubmitted = true;
-    $('#add-item-row-' + num).removeClass('hiddenElement');
-  });
-
-  // if you choose manual amount, then hide all other option and line-item add block
-  $('#choose-manual').on('click', function() {
-    $('#totalAmount, #totalAmountORaddLineitem, #totalAmountORPriceSet, #price_set_id').show();
-    reset();
-  });
-
-  // if total amount element is present which is on edit contribution form, when contribution is not done by using price set then append and show necessary links
-  if ($('input[id="total_amount"]').length) {
-    $('#totalAmountORaddLineitem').insertAfter('#totalAmount');
-    $('#lineitem-add-block').insertBefore('#totalAmountBlock').css('display', ((isSubmitted || $('.lineitem-info-row').length) ? 'block' : 'none'));
-  }
-  else {
-    $('#totalAmountORaddLineitem').insertBefore('.total_amount-section');
-    $('#lineitem-add-block').insertBefore('#totalAmountORaddLineitem').css('display', ((isSubmitted || $('.lineitem-info-row').length) ? 'block' : 'none'));
-  }
-
-  $('#totalAmountBlock span').text(ts('Alternatively, you can use a price set or add ad-hoc item(s).'));
-  $('#price_set_id').on('change', function() {
-    var show = ($(this).val() === '');
-    $('#totalAmountORaddLineitem').toggle(show);
-    if (!show) {
-      $('#lineitem-add-block').addClass("hiddenElement");
+    if (!isNotQuickConfig && action == 2) {
+      $('#totalAmountORaddLineitem, #add_item').hide();
     }
-  });
-  $('#add-items, #add-another-item').on('click', function() {
-    if($('#column-header').hasClass("hiddenElement")){
-      $('#column-header').show().removeClass('hiddenElement');
-    }
+    
+    // after form rule validation when page reloads then show only those line-item which were chosen and hide others
+    $.each(submittedRows, function(e, num) {
+      isSubmitted = true;
+      $('#add-item-row-' + num).removeClass('hiddenElement');
+    });
 
-    if ($('tr.line-item-row').hasClass("hiddenElement")) {
-      var row = $('#lineitem-add-block tr.hiddenElement:first');
-      $('tr.hiddenElement:first, #lineitem-add-block').show().removeClass('hiddenElement');
-      fillLineItemRow($('input[id^="item_price_field_value_id"]', row).val(), row);
-      if (action == 1) {
-        $('#totalAmount, #totalAmountORaddLineitem, #totalAmountORPriceSet, #price_set_id').hide();
-        $( "#total_amount").val(0);
-      }
-    }
-    else {
-      $('#add-another-item').hide();
-    }
-  });
-  $('#add_item').on('change', function() {
-    var val = $(this).val();
-    if (val !== '') {
-      var found = false;
-      $.each($('.line-item-row'), function() {
-        var row = this;
-        var pvid = $('input[id^="item_price_field_value_id"]', this).val();
-        if (pvid == val && !found && $(this).hasClass('hiddenElement')) {
-          $(this).removeClass('hiddenElement').show();
-          $('#lineitem-add-block').css('display', 'block');
-          found = true;
-          fillLineItemRow(pvid, row);
-        }
-      });
-    }
-    else {
+    // if you choose manual amount, then hide all other option and line-item add block
+    $('#choose-manual').on('click', function() {
+      $('#totalAmount, #totalAmountORaddLineitem, #totalAmountORPriceSet, #price_set_id').show();
       reset();
-    }
-  });
+    });
 
-  $('.remove_item').on('click', function() {
-    var row = $(this).closest('tr');
-    $('#add-another-item').show();
-    $('input[id^="item_label"]', row).val('');
-    $('select[id^="item_financial_type_id"]', row).select2('val', '');
-    $('input[id^="item_qty"]', row).val('');
-    $('input[id^="item_unit_price"], input[id^="item_line_total"], input[id^="item_tax_amount"]', row).val('');
-    row.addClass('hiddenElement').hide();
-    calculateTotalAmount();
-  });
-
-  var $form = $('form.{/literal}{$form.formClass}{literal}');
-  $('select[id^="item_financial_type_id_"], input[id^="item_unit_price_"], input[id^="item_qty_"]', $form).on('change', function() {
-    var row = $(this).closest('tr');
-    var unit_price = $('input[id^="item_unit_price_"]', row).val();
-    var qty = $('input[id^="item_qty_"]', row).val();
-    var totalAmount = (qty * unit_price);
-    $('input[id^="item_line_total_"]', row).val(CRM.formatMoney(totalAmount, true));
-    if ($('input[id^="item_tax_amount"]', row).length) {
-      var tax_amount = calculateTaxAmount($('select[id^="item_financial_type_id_"]', row).val(), totalAmount);
-      $('input[id^="item_tax_amount"]', row).val(tax_amount);
-    }
-    calculateTotalAmount();
-  });
-
-  $('input[id="total_amount"]', $form).on('change', calculateTotalAmount);
-
-  function calculateTotalAmount() {
-    var formattedMoney = CRM.formatMoney(1234.56);
-    var thousandSeparator = ',';
-    var decimalSeparator = '.';
-
-    // Detect the thousand and decimal separators (the old core settings are going away)
-    if ((result = /1(.?)234(.?)56/.exec(formattedMoney)) !== null) {
-      thousandSeparator = result[1];
-      decimalSeparator = result[2];
-    }
-
-    let total_amount = 0;
+    // if total amount element is present which is on edit contribution form, when contribution is not done by using price set then append and show necessary links
     if ($('input[id="total_amount"]').length) {
-      total_amount = parseFloat(($('input[id="total_amount"]').val().replace(thousandSeparator,'') || 0));
+      $('#totalAmountORaddLineitem').insertAfter('#totalAmount');
+      $('#lineitem-add-block').insertBefore('#totalAmountBlock').css('display', ((isSubmitted || $('.lineitem-info-row').length) ? 'block' : 'none'));
+    }
+    else {
+      $('#totalAmountORaddLineitem').insertBefore('.total_amount-section');
+      $('#lineitem-add-block').insertBefore('#totalAmountORaddLineitem').css('display', ((isSubmitted || $('.lineitem-info-row').length) ? 'block' : 'none'));
     }
 
-    if (!$("#total_amount").is(":hidden")) {
-      total_amount += calculateTaxAmount($('select[id="financial_type_id"]').val(), total_amount);
-    }
-
-    $.each($('.line-item-row'), function() {
-      total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
-      if ($('input[id^="item_tax_amount"]', this).length) {
-        total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
+    $('#totalAmountBlock span').text(ts('Alternatively, you can use a price set or add ad-hoc item(s).'));
+    $('#price_set_id').on('change', function() {
+      var show = ($(this).val() === '');
+      $('#totalAmountORaddLineitem').toggle(show);
+      if (!show) {
+        $('#lineitem-add-block').addClass("hiddenElement");
       }
     });
-    $('#line-total').text(CRM.formatMoney(total_amount));
-
-    return total_amount;
-  }
-
-  function fillLineItemRow(pvid, row) {
-    var total_amount = 0;
-    if (pvid == 'new') {
-      $('input[id^="item_label"]', row).val(ts('Additional line item'));
-      $('select[id^="item_financial_type_id"]', row).select2('val', $('#financial_type_id').val());
-      $('input[id^="item_qty"]', row).val(1);
-      total_amount = CRM.formatMoney(1, true);
-      $('input[id^="item_unit_price"], input[id^="item_line_total"]', row).val(total_amount);
-      if ($('input[id^="item_tax_amount"]', row).length) {
-        var tax_amount = calculateTaxAmount($('select[id^="item_financial_type_id_"]', row).val(), 1);
-        total_amount += tax_amount;
-        $('input[id^="item_tax_amount"]', row).val(CRM.formatMoney(tax_amount, true));
+    $('#add-items, #add-another-item').on('click', function() {
+      if($('#column-header').hasClass("hiddenElement")){
+        $('#column-header').show().removeClass('hiddenElement');
       }
-      $('#line-total').text(CRM.formatMoney(parseFloat(calculateTotalAmount())));
-    }
-    else {
-      CRM.api3('PriceFieldValue', 'getsingle', {"id": pvid}).done(function(result) {
-        if ($('#financial_type_id').length && result.name == 'contribution_amount') {
-          $('#financial_type_id').val(result.financial_type_id);
+
+      if ($('tr.line-item-row').hasClass("hiddenElement")) {
+        var row = $('#lineitem-add-block tr.hiddenElement:first');
+        $('tr.hiddenElement:first, #lineitem-add-block').show().removeClass('hiddenElement');
+        fillLineItemRow($('input[id^="item_price_field_value_id"]', row).val(), row);
+        if (action == 1) {
+          $('#totalAmount, #totalAmountORaddLineitem, #totalAmountORPriceSet, #price_set_id').hide();
+          $( "#total_amount").val(0);
         }
-        $('input[id^="item_label"]', row).val(result.label);
-        $('select[id^="item_financial_type_id"]', row).select2('val', result.financial_type_id);
+      }
+      else {
+        $('#add-another-item').hide();
+      }
+    });
+    $('#add_item').on('change', function() {
+      var val = $(this).val();
+      if (val !== '') {
+        var found = false;
+        $.each($('.line-item-row'), function() {
+          var row = this;
+          var pvid = $('input[id^="item_price_field_value_id"]', this).val();
+          if (pvid == val && !found && $(this).hasClass('hiddenElement')) {
+            $(this).removeClass('hiddenElement').show();
+            $('#lineitem-add-block').css('display', 'block');
+            found = true;
+            fillLineItemRow(pvid, row);
+          }
+        });
+      }
+      else {
+        reset();
+      }
+    });
+
+    $('.remove_item').on('click', function() {
+      var row = $(this).closest('tr');
+      $('#add-another-item').show();
+      $('input[id^="item_label"]', row).val('');
+      $('select[id^="item_financial_type_id"]', row).select2('val', '');
+      $('input[id^="item_qty"]', row).val('');
+      $('input[id^="item_unit_price"], input[id^="item_line_total"], input[id^="item_tax_amount"]', row).val('');
+      row.addClass('hiddenElement').hide();
+      calculateTotalAmount();
+    });
+
+    var $form = $('form.{/literal}{$form.formClass}{literal}');
+    $('select[id^="item_financial_type_id_"], input[id^="item_unit_price_"], input[id^="item_qty_"]', $form).on('change', function() {
+      var row = $(this).closest('tr');
+      var unit_price = $('input[id^="item_unit_price_"]', row).val();
+      var qty = $('input[id^="item_qty_"]', row).val();
+      var totalAmount = (qty * unit_price);
+      $('input[id^="item_line_total_"]', row).val(CRM.formatMoney(totalAmount, true));
+      if ($('input[id^="item_tax_amount"]', row).length) {
+        var tax_amount = calculateTaxAmount($('select[id^="item_financial_type_id_"]', row).val(), totalAmount);
+        $('input[id^="item_tax_amount"]', row).val(tax_amount);
+      }
+      calculateTotalAmount();
+    });
+
+    $('input[id="total_amount"]', $form).on('change', calculateTotalAmount);
+
+    function calculateTotalAmount(){
+      var formattedMoney = CRM.formatMoney(1234.56);
+      var thousandSeparator = ',';
+      var decimalSeparator = '.';
+
+      // Detect the thousand and decimal separators (the old core settings are going away)
+      if ((result = /1(.?)234(.?)56/.exec(formattedMoney)) !== null) {
+        thousandSeparator = result[1];
+        decimalSeparator = result[2];
+      }
+
+      let total_amount = 0;
+
+      if ($('input[id="total_amount"]').length) {
+        total_amount = parseFloat(($('input[id="total_amount"]').val().replace(thousandSeparator,'') || 0));
+      }
+
+      if (!$("#total_amount").is(":hidden")) {
+        total_amount += calculateTaxAmount($('select[id="financial_type_id"]').val(), total_amount);
+      }
+
+      $.each($('.line-item-row'), function() {
+        total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
+        if ($('input[id^="item_tax_amount"]', this).length) {
+          total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
+        }
+      });
+
+      $('#line-total').text(CRM.formatMoney(total_amount));
+
+      return total_amount;
+    }
+
+    function calculateTotalAmountOnLoad() {
+      var formattedMoney = CRM.formatMoney(1234.56);
+      var thousandSeparator = ',';
+      var decimalSeparator = '.';
+
+      // Detect the thousand and decimal separators (the old core settings are going away)
+      if ((result = /1(.?)234(.?)56/.exec(formattedMoney)) !== null) {
+        thousandSeparator = result[1];
+        decimalSeparator = result[2];
+      }
+
+      let total_amount = 0;
+      CRM.api4('LineItem', 'get', {
+        select: ["line_total"],
+        where: [["entity_id", "=", contributionId]]
+      }).then(function(lineItems) {
+        for(i=0;i<lineItems.count;i++)
+        {
+          total_amount += lineItems[i].line_total;
+        }
+
+      if (!$("#total_amount").is(":hidden")) {
+        total_amount += calculateTaxAmount($('select[id="financial_type_id"]').val(), total_amount);
+      }
+
+      $.each($('.line-item-row'), function() {
+        total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
+        if ($('input[id^="item_tax_amount"]', this).length) {
+          total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
+        }
+      });
+
+      $('#line-total').text(CRM.formatMoney(total_amount));
+
+      $("#total_amount").val(CRM.formatMoney(total_amount,true));
+
+      return total_amount;
+
+      }, function(failure) {
+        console.log(failure);
+      });
+    }
+
+    function fillLineItemRow(pvid, row) {
+      let total_amount = 0;
+      if (pvid == 'new') {
+        $('input[id^="item_label"]', row).val(ts('Additional line item'));
+        $('select[id^="item_financial_type_id"]', row).select2('val', $('#financial_type_id').val());
         $('input[id^="item_qty"]', row).val(1);
-        total_amount = CRM.formatMoney(result.amount, true);
+        total_amount = CRM.formatMoney(1, true);
         $('input[id^="item_unit_price"], input[id^="item_line_total"]', row).val(total_amount);
         if ($('input[id^="item_tax_amount"]', row).length) {
-          var tax_amount = calculateTaxAmount($('select[id^="item_financial_type_id_"]', row).val(), result.amount);
+          var tax_amount = calculateTaxAmount($('select[id^="item_financial_type_id_"]', row).val(), 1);
           total_amount += tax_amount;
           $('input[id^="item_tax_amount"]', row).val(CRM.formatMoney(tax_amount, true));
         }
         $('#line-total').text(CRM.formatMoney(parseFloat(calculateTotalAmount())));
-      });
-    }
-    $('#net_amount, #fee_amount, #non_deductible_amount').val('');
-  }
-
-  function calculateTaxAmount(financial_type_id, line_total) {
-    var tax_amount = 0;
-    var tax_rates = {/literal}{$taxRates}{literal};
-    if (financial_type_id in tax_rates) {
-      tax_amount = (tax_rates[financial_type_id] / 100) * line_total;
-    }
-    return tax_amount;
-  }
-
-  function reset() {
-    $('#lineitem-add-block').hide();
-    $.each($('.line-item-row'), function() {
-      var row = $(this);
-      if (!(row.hasClass('hiddenElement'))) {
-        $('input[id^="item_label"]', row).val('');
-        $('select[id^="item_financial_type_id"]', row).select2('val', '');
-        $('input[id^="item_qty"]', row).val('');
-        $('input[id^="item_unit_price"], input[id^="item_line_total"], input[id^="item_tax_amount"]', row).val('');
-        row.addClass('hiddenElement').hide();
       }
-    });
-    calculateTotalAmount();
-  }
+      else {
+        CRM.api3('PriceFieldValue', 'getsingle', {"id": pvid}).done(function(result) {
+          if ($('#financial_type_id').length && result.name == 'contribution_amount') {
+            $('#financial_type_id').val(result.financial_type_id);
+          }
+          $('input[id^="item_label"]', row).val(result.label);
+          $('select[id^="item_financial_type_id"]', row).select2('val', result.financial_type_id);
+          $('input[id^="item_qty"]', row).val(1);
+          total_amount = CRM.formatMoney(result.amount, true);
+          $('input[id^="item_unit_price"], input[id^="item_line_total"]', row).val(total_amount);
+          if ($('input[id^="item_tax_amount"]', row).length) {
+            var tax_amount = calculateTaxAmount($('select[id^="item_financial_type_id_"]', row).val(), result.amount);
+            total_amount += tax_amount;
+            $('input[id^="item_tax_amount"]', row).val(CRM.formatMoney(tax_amount, true));
+          }
+          $('#line-total').text(CRM.formatMoney(parseFloat(calculateTotalAmount())));
+        });
+      }
+      $('#net_amount, #fee_amount, #non_deductible_amount').val('');
+    }
 
-});
+    function calculateTaxAmount(financial_type_id, line_total) {
+      var tax_amount = 0;
+      var tax_rates = {/literal}{$taxRates}{literal};
+      if (financial_type_id in tax_rates) {
+        tax_amount = (tax_rates[financial_type_id] / 100) * line_total;
+      }
+      return tax_amount;
+    }
+
+    function reset() {
+      $('#lineitem-add-block').hide();
+      $.each($('.line-item-row'), function() {
+        var row = $(this);
+        if (!(row.hasClass('hiddenElement'))) {
+          $('input[id^="item_label"]', row).val('');
+          $('select[id^="item_financial_type_id"]', row).select2('val', '');
+          $('input[id^="item_qty"]', row).val('');
+          $('input[id^="item_unit_price"], input[id^="item_line_total"], input[id^="item_tax_amount"]', row).val('');
+          row.addClass('hiddenElement').hide();
+        }
+      });
+      calculateTotalAmount();
+    }
+  });
+  {/literal}
 </script>
-{/literal}
