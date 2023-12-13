@@ -289,7 +289,7 @@ return [
                 ],
               ], 
               [
-                'path' => E::url('~/templates/CRM/Lineitemedit/Form/Buttons.tpl'),
+                'path' => E::url('templates/CRM/Lineitemedit/Form/Buttons.html'),
                 'type' => 'include',
                 'alignment' => 'text-right',
               ],
