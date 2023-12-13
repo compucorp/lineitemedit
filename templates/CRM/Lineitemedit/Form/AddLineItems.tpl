@@ -68,9 +68,85 @@
 
 <script type="text/javascript">
   var contributionId = '{$contribution_id}';
+  var editUrl = '{$editUrl}';
+  var cancelUrl = '{$cancelUrl}';
+
   {literal}
   CRM.$(function($) {
-    calculateTotalAmountOnLoad();
+    // Create a new MutationObserver
+    var observer = new MutationObserver(function(mutations) {
+      var ready = false;
+        mutations.forEach(function(mutation) {
+            // Check each mutation for added nodes
+            mutation.addedNodes.forEach(function(node) {
+                // Check if line item edit buttons have been added yet
+                if ($(node).is('.edit-line-item')) {
+                  ready = true;
+                }
+            });
+        });
+
+        // Add hrefs to line item edit and cancel buttons
+        if(ready) {
+          addHrefs();
+        }
+    });
+
+    function addHrefs() {
+      // Get all edit and cancel buttons on SearchKit
+      var editButtons = $('.edit-line-item');
+      var cancelButtons = $('.cancel-line-item');
+
+      CRM.api4('LineItem', 'get', {
+        select: ["id", "line_total"],
+        where: [["entity_id", "=", contributionId]],
+        orderBy: {"id":"ASC"},
+      }).then(function(lineItems) {
+        console.log(lineItems);
+
+        // Find the element with the 'active' class within the pagination list
+        var activePageElement = document.querySelector('.pagination-page.active');
+
+        // Get the page number from the text content of the element
+        var currentPageNumber = activePageElement.textContent.trim();
+
+        editButtons.each(function(index, element) {
+          // Get line item ID
+          var itemId = lineItems[index].id + (currentPageNumber-1) * 25;
+          // Set url to edit line item
+          $(this).attr('href', editUrl + itemId);
+        });
+        cancelButtons.each(function(index, element) {
+          // Get line item ID
+          var itemId = lineItems[index].id  + (currentPageNumber-1) * 25;
+
+          // Disable button if line total is 0
+          if (lineItems[index].line_total == 0) {
+            $(this).css({
+                'color': 'grey',
+                'pointer-events': 'none'
+            });
+          }
+
+          else {
+            // Set url to cancel line item
+            $(this).attr('href', cancelUrl + itemId);
+          }
+        });
+
+        if(lineItems.count<=25) {
+          observer.disconnect();
+        }
+      }, 
+      function(failure) {
+        console.log(failure);
+      });
+    };
+
+    // Start observing the document for changes
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    calculateTotalAmount();
     var isSubmitted = false,
     submittedRows = $.parseJSON('{/literal}{$lineItemSubmitted}{literal}'),
     action = '{/literal}{$action}{literal}'
@@ -208,48 +284,48 @@
       return total_amount;
     }
 
-    function calculateTotalAmountOnLoad() {
-      var formattedMoney = CRM.formatMoney(1234.56);
-      var thousandSeparator = ',';
-      var decimalSeparator = '.';
+    // function calculateTotalAmountOnLoad() {
+    //   var formattedMoney = CRM.formatMoney(1234.56);
+    //   var thousandSeparator = ',';
+    //   var decimalSeparator = '.';
 
-      // Detect the thousand and decimal separators (the old core settings are going away)
-      if ((result = /1(.?)234(.?)56/.exec(formattedMoney)) !== null) {
-        thousandSeparator = result[1];
-        decimalSeparator = result[2];
-      }
+    //   // Detect the thousand and decimal separators (the old core settings are going away)
+    //   if ((result = /1(.?)234(.?)56/.exec(formattedMoney)) !== null) {
+    //     thousandSeparator = result[1];
+    //     decimalSeparator = result[2];
+    //   }
 
-      let total_amount = 0;
-      CRM.api4('LineItem', 'get', {
-        select: ["line_total"],
-        where: [["entity_id", "=", contributionId]]
-      }).then(function(lineItems) {
-        for(i=0;i<lineItems.count;i++)
-        {
-          total_amount += lineItems[i].line_total;
-        }
+    //   let total_amount = 0;
+    //   CRM.api4('LineItem', 'get', {
+    //     select: ["line_total"],
+    //     where: [["entity_id", "=", contributionId]]
+    //   }).then(function(lineItems) {
+    //     for(i=0;i<lineItems.count;i++)
+    //     {
+    //       total_amount += lineItems[i].line_total;
+    //     }
 
-      if (!$("#total_amount").is(":hidden")) {
-        total_amount += calculateTaxAmount($('select[id="financial_type_id"]').val(), total_amount);
-      }
+    //   if (!$("#total_amount").is(":hidden")) {
+    //     total_amount += calculateTaxAmount($('select[id="financial_type_id"]').val(), total_amount);
+    //   }
 
-      $.each($('.line-item-row'), function() {
-        total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
-        if ($('input[id^="item_tax_amount"]', this).length) {
-          total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
-        }
-      });
+    //   $.each($('.line-item-row'), function() {
+    //     total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
+    //     if ($('input[id^="item_tax_amount"]', this).length) {
+    //       total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
+    //     }
+    //   });
 
-      $('#line-total').text(CRM.formatMoney(total_amount));
+    //   $('#line-total').text(CRM.formatMoney(total_amount));
 
-      $("#total_amount").val(CRM.formatMoney(total_amount,true));
+    //   $("#total_amount").val(CRM.formatMoney(total_amount,true));
 
-      return total_amount;
+    //   return total_amount;
 
-      }, function(failure) {
-        console.log(failure);
-      });
-    }
+    //   }, function(failure) {
+    //     console.log(failure);
+    //   });
+    // }
 
     function fillLineItemRow(pvid, row) {
       let total_amount = 0;

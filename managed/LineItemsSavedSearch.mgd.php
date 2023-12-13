@@ -44,25 +44,23 @@ return [
             ],
             'having' => [],
           ], 
-          'expires_date' => NULL, 
-          'description' => NULL, 
-          'mapping_id' => NULL,
         ],
       ],
     ], 
     [
       'name' => 'SavedSearch_Line_Items_SearchDisplay_Contribution_Amount_Tax', 
       'entity' => 'SearchDisplay', 
-      'cleanup' => 'always', 
-      'update' => 'always', 
+      'cleanup' => 'unused', 
+      'update' => 'unmodified', 
       'params' => [
         'version' => 4, 
         'values' => [
           'name' => 'Line_Items_Table_Tax', 
-          'label' => 'Contribution Amount', 
+          'label' => E::ts('Contribution Amount'), 
           'saved_search_id.name' => 'Line_Items', 
           'type' => 'table', 
           'settings' => [
+            'description' => NULL,
             'actions' => FALSE, 
             'limit' => 25, 
             'classes' => [
@@ -76,7 +74,7 @@ return [
             ], 
             'sort' => [
               [
-                'label', 
+                'id',
                 'ASC',
               ],
             ], 
@@ -85,8 +83,8 @@ return [
                 'type' => 'field', 
                 'key' => 'label', 
                 'dataType' => 'String', 
-                'label' => 'Item', 
-                'sortable' => TRUE,
+                'label' => E::ts('Item'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -100,8 +98,8 @@ return [
                 'type' => 'field', 
                 'key' => 'financial_type_id:label', 
                 'dataType' => 'Integer', 
-                'label' => 'Financial Type', 
-                'sortable' => TRUE,
+                'label' => E::ts('Financial Type'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -114,9 +112,9 @@ return [
               [
                 'type' => 'field', 
                 'key' => 'qty', 
-                'dataType' => 'Money', 
-                'label' => 'Qty', 
-                'sortable' => TRUE,
+                'dataType' => 'Integer', 
+                'label' => E::ts('Qty'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -130,8 +128,8 @@ return [
                 'type' => 'field', 
                 'key' => 'unit_price', 
                 'dataType' => 'Money', 
-                'label' => 'Unit Price', 
-                'sortable' => TRUE,
+                'label' => E::ts('Unit Price'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -145,8 +143,8 @@ return [
                 'type' => 'field', 
                 'key' => 'line_total', 
                 'dataType' => 'Money', 
-                'label' => 'Total Price', 
-                'sortable' => TRUE,
+                'label' => E::ts('Total Price'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -160,8 +158,8 @@ return [
                 'type' => 'field', 
                 'key' => 'tax_amount', 
                 'dataType' => 'Money', 
-                'label' => 'Tax Amount', 
-                'sortable' => TRUE,
+                'label' => E::ts('Tax Amount'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -172,59 +170,35 @@ return [
                 ],
               ],
               [
-                'size' => '',
-                'links' => [
-                  [
-                    'entity' => '',
-                    'action' => '',
-                    'join' => '',
-                    'target' => 'crm-popup',
-                    'icon' => 'fa-pencil',
-                    'text' => '',
-                    'style' => 'secondary',
-                    'path' => 'civicrm/lineitem/edit?reset=1&id=[id]',
-                    'condition' => [],
-                    'title' => 'Edit Item',
-                  ],
-                  [
-                    'entity' => '',
-                    'action' => '',
-                    'join' => '',
-                    'target' => 'crm-popup',
-                    'icon' => 'fa-repeat fa-flip-horizontal',
-                    'text' => '',
-                    'style' => 'secondary',
-                    'path' => 'civicrm/lineitem/cancel?reset=1&id=[id]',
-                    'condition' => [],
-                    'title' => 'Cancel Item',
-                  ],
-                ],
-                'type' => 'buttons',
+                'path' => E::url('templates/CRM/Lineitemedit/Form/Buttons.tpl'),
+                'type' => 'include',
                 'alignment' => 'text-right',
               ],
             ],
-          ], 
-          'acl_bypass' => FALSE,
+            'actions' => FALSE,
+            'headerCount' => FALSE,
+            'button' => NULL,
+          ],
         ],
       ],
     ], 
     [
       'name' => 'SavedSearch_Line_Items_SearchDisplay_Line_Items_Table', 
       'entity' => 'SearchDisplay', 
-      'cleanup' => 'always', 
-      'update' => 'always', 
+      'cleanup' => 'unused', 
+      'update' => 'unmodified', 
       'params' => [
         'version' => 4, 
         'values' => [
           'name' => 'Line_Items_Table', 
-          'label' => 'Contribution Amount', 
+          'label' => E::ts('Contribution Amount'), 
           'saved_search_id.name' => 'Line_Items', 
           'type' => 'table', 
           'settings' => [
             'description' => NULL, 
             'sort' => [
               [
-                'label', 
+                'id',
                 'ASC',
               ],
             ], 
@@ -234,14 +208,17 @@ return [
               'table-striped', 
               'table-bordered',
             ], 
-            'pager' => [], 
+            'pager' => [
+              'show_count' => FALSE,
+              'expose_limit' => FALSE,
+            ], 
             'columns' => [
               [
                 'type' => 'field', 
                 'key' => 'label', 
                 'dataType' => 'String', 
-                'label' => 'Item', 
-                'sortable' => TRUE,
+                'label' => E::ts('Item'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -255,8 +232,8 @@ return [
                 'type' => 'field', 
                 'key' => 'financial_type_id:label', 
                 'dataType' => 'Integer', 
-                'label' => 'Financial Type', 
-                'sortable' => TRUE,
+                'label' => E::ts('Financial Type'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -270,8 +247,8 @@ return [
                 'type' => 'field', 
                 'key' => 'qty', 
                 'dataType' => 'Integer', 
-                'label' => 'Qty', 
-                'sortable' => TRUE,
+                'label' => E::ts('Qty'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -285,8 +262,8 @@ return [
                 'type' => 'field', 
                 'key' => 'unit_price', 
                 'dataType' => 'Money', 
-                'label' => 'Unit Price', 
-                'sortable' => TRUE,
+                'label' => E::ts('Unit Price'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -300,8 +277,8 @@ return [
                 'type' => 'field', 
                 'key' => 'line_total', 
                 'dataType' => 'Money', 
-                'label' => 'Total Price', 
-                'sortable' => TRUE,
+                'label' => E::ts('Total Price'), 
+                'sortable' => FALSE,
                 'cssRules' => [
                   [
                     'disabled', 
@@ -312,34 +289,8 @@ return [
                 ],
               ], 
               [
-                'size' => '', 
-                'links' => [
-                  [
-                    'entity' => '', 
-                    'action' => '', 
-                    'join' => '', 
-                    'target' => 'crm-popup', 
-                    'icon' => 'fa-pencil', 
-                    'text' => '', 
-                    'style' => 'secondary', 
-                    'path' => 'civicrm/lineitem/edit?reset=1&id=[id]', 
-                    'condition' => [], 
-                    'title' => 'Edit Item',
-                  ], 
-                  [
-                    'entity' => '', 
-                    'action' => '', 
-                    'join' => '', 
-                    'target' => 'crm-popup', 
-                    'icon' => 'fa-repeat fa-flip-horizontal', 
-                    'text' => '', 
-                    'style' => 'secondary', 
-                    'path' => 'civicrm/lineitem/cancel?reset=1&id=[id]', 
-                    'condition' => [], 
-                    'title' => 'Cancel Item',
-                  ],
-                ], 
-                'type' => 'buttons', 
+                'path' => 'http://localhost:8888/wordpress/wp-content/uploads/civicrm/ext/lineitemedit/templates/CRM/Lineitemedit/Form/Buttons.tpl',
+                'type' => 'include',
                 'alignment' => 'text-right',
               ],
             ], 
@@ -347,7 +298,6 @@ return [
             'headerCount' => FALSE, 
             'button' => NULL,
           ], 
-          'acl_bypass' => FALSE,
         ],
       ],
     ],
