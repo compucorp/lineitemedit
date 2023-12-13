@@ -289,7 +289,7 @@ return [
                 ],
               ], 
               [
-                'path' => 'http://localhost:8888/wordpress/wp-content/uploads/civicrm/ext/lineitemedit/templates/CRM/Lineitemedit/Form/Buttons.tpl',
+                'path' => E::url('~/templates/CRM/Lineitemedit/Form/Buttons.tpl'),
                 'type' => 'include',
                 'alignment' => 'text-right',
               ],
