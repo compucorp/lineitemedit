@@ -102,7 +102,6 @@
         where: [["entity_id", "=", contributionId]],
         orderBy: {"id":"ASC"},
       }).then(function(lineItems) {
-        console.log(lineItems);
 
         // Find the element with the 'active' class within the pagination list
         var activePageElement = document.querySelector('.pagination-page.active');
@@ -283,49 +282,6 @@
 
       return total_amount;
     }
-
-    // function calculateTotalAmountOnLoad() {
-    //   var formattedMoney = CRM.formatMoney(1234.56);
-    //   var thousandSeparator = ',';
-    //   var decimalSeparator = '.';
-
-    //   // Detect the thousand and decimal separators (the old core settings are going away)
-    //   if ((result = /1(.?)234(.?)56/.exec(formattedMoney)) !== null) {
-    //     thousandSeparator = result[1];
-    //     decimalSeparator = result[2];
-    //   }
-
-    //   let total_amount = 0;
-    //   CRM.api4('LineItem', 'get', {
-    //     select: ["line_total"],
-    //     where: [["entity_id", "=", contributionId]]
-    //   }).then(function(lineItems) {
-    //     for(i=0;i<lineItems.count;i++)
-    //     {
-    //       total_amount += lineItems[i].line_total;
-    //     }
-
-    //   if (!$("#total_amount").is(":hidden")) {
-    //     total_amount += calculateTaxAmount($('select[id="financial_type_id"]').val(), total_amount);
-    //   }
-
-    //   $.each($('.line-item-row'), function() {
-    //     total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
-    //     if ($('input[id^="item_tax_amount"]', this).length) {
-    //       total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
-    //     }
-    //   });
-
-    //   $('#line-total').text(CRM.formatMoney(total_amount));
-
-    //   $("#total_amount").val(CRM.formatMoney(total_amount,true));
-
-    //   return total_amount;
-
-    //   }, function(failure) {
-    //     console.log(failure);
-    //   });
-    // }
 
     function fillLineItemRow(pvid, row) {
       let total_amount = 0;
