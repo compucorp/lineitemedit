@@ -45,7 +45,6 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
     foreach (CRM_Lineitemedit_Util::getLineitemFieldNames() as $attribute) {
       $this->_values[$attribute] = $this->_lineitemInfo[$attribute] ?? 0;
     }
-
     $this->_values['currency'] = CRM_Core_DAO::getFieldValue(
       'CRM_Financial_DAO_Currency',
       CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_Contribution', $this->_lineitemInfo['contribution_id'], 'currency'),
@@ -76,6 +75,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
 
   public function buildQuickForm() {
     $fieldNames = array_keys($this->_values);
+    $this->assign('currency', $this->_values['currency']);
     foreach ($fieldNames as $fieldName) {
       $required = TRUE;
       if ($fieldName == 'line_total') {
@@ -87,7 +87,6 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
         continue;
       }
       elseif ($fieldName == 'currency') {
-        $this->assign('currency', $this->_values['currency']);
         continue;
       }
       $properties = array(
