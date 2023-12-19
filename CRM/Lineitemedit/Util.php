@@ -228,7 +228,7 @@ class CRM_Lineitemedit_Util {
    *
    */
   public static function createDeferredTrxn($contributionID, $lineItem, $context) {
-    if (CRM_Contribute_BAO_Contribution::checkContributeSettings('deferred_revenue_enabled')) {
+    if (Civi::settings()->get('deferred_revenue_enabled') ?? 0) {
       $lineItem = array($contributionID => array($lineItem['id'] => $lineItem));
       CRM_Core_BAO_FinancialTrxn::createDeferredTrxn($lineItem, $contributionID, TRUE, $context);
     }
