@@ -30,6 +30,7 @@ class CRM_Lineitemedit_Util {
         'qs' => 'reset=1&id=%%id%%',
         'title' => ts('Edit Line item'),
         'ref' => ' crm-i fa-pencil',
+        'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::UPDATE),
       ),
       CRM_Core_Action::DELETE => array(
         'name' => ts(''),
@@ -37,6 +38,7 @@ class CRM_Lineitemedit_Util {
         'qs' => 'reset=1&id=%%id%%',
         'title' => ts('Cancel Line item'),
         'ref' => ' crm-i fa-undo',
+        'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::DELETE),
       ),
     );
 
@@ -615,7 +617,7 @@ ORDER BY  ps.id, pf.weight ;
           'entity_table' => 'civicrm_participant',
           'options' => array('limit' => 1),
         ));
-        $entityId = $result['entity_id'];
+        $entityID = $result['entity_id'];
         $entityTable = 'civicrm_participant';
       }
       catch (CiviCRM_API3_Exception $e) {
@@ -646,7 +648,6 @@ ORDER BY  ps.id, pf.weight ;
         ));
         break;
     }
-
     return array($entityTable, $entityID);
   }
 
