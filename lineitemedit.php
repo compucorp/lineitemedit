@@ -45,6 +45,11 @@ function lineitemedit_civicrm_container(\Symfony\Component\DependencyInjection\C
 }
 
 function lineitemedit_civicrm_buildForm($formName, &$form) {
+  if($formName == 'CRM_Contribute_Form_Search')
+  {
+    Civi::resources()->addBundle('bootstrap3');
+  }
+
   if ($formName == 'CRM_Contribute_Form_Contribution') {
     $contributionID = NULL;
     if (!empty($form->_id) && ($form->_action & CRM_Core_Action::UPDATE)) {
@@ -72,6 +77,12 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
     }
 
     if (!($form->_action & CRM_Core_Action::DELETE)) {
+      $form->assign('contribution_id',$contributionID);
+      Civi::service('angularjs.loader')->addModules(['afLineItems', 'afLineItemsTax']);
+
+      $form->assign('editUrl', CRM_Utils_System::url('civicrm/lineitem/edit?reset=1&id=',NULL,FALSE,NULL,FALSE));
+      $form->assign('cancelUrl', CRM_Utils_System::url('civicrm/lineitem/cancel?reset=1&id=',NULL,FALSE,NULL,FALSE));
+
       CRM_Lineitemedit_Util::buildLineItemRows($form, $contributionID);
       // assign this value so Smarty can properly iterate
       $form->assign('lineItemNumber', Civi::settings()->get('line_item_number'));
