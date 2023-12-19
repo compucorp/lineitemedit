@@ -64,6 +64,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
 
         // Assumes templates are in a templates folder relative to this file
         $templatePath = realpath(dirname(__FILE__) . "/templates");
+        $form->assign('pricesetFieldsCount', FALSE);
       }
       else {
         $pricesetFieldsCount = CRM_Core_Smarty::singleton()->get_template_vars('pricesetFieldsCount');
@@ -202,12 +203,11 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
         else {
           $lineItem['price_field_id'] = CRM_Core_DAO::getFieldValue('CRM_Price_DAO_PriceFieldValue', $lineItem['price_field_value_id'], 'price_field_id');
         }
-        list($lineEntityTable, $lineEntityID) = CRM_Lineitemedit_Util::addEntity(
+        [$lineEntityTable, $lineEntityID] = CRM_Lineitemedit_Util::addEntity(
           $lineItem['price_field_value_id'],
           $entityID,
           $lineItem['qty']
         );
-
         $newLineItemParams[] = array(
           'entity_table' => $lineEntityTable,
           'entity_id' => $lineEntityID,
