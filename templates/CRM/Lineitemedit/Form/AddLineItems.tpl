@@ -96,10 +96,9 @@
       // Get all edit and cancel buttons on SearchKit
       var editButtons = $('.edit-line-item');
       var cancelButtons = $('.cancel-line-item');
-
       CRM.api4('LineItem', 'get', {
         select: ["id", "line_total"],
-        where: [["entity_id", "=", contributionId]],
+        where: [["contribution_id", "=", contributionId]],
         orderBy: {"id":"ASC"},
       }).then(function(lineItems) {
 
