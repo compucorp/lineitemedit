@@ -45,8 +45,7 @@ function lineitemedit_civicrm_container(\Symfony\Component\DependencyInjection\C
 }
 
 function lineitemedit_civicrm_buildForm($formName, &$form) {
-  if($formName == 'CRM_Contribute_Form_Search')
-  {
+  if ($formName == 'CRM_Contribute_Form_Search') {
     Civi::resources()->addBundle('bootstrap3');
   }
 
