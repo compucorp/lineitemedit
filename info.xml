@@ -22,7 +22,7 @@
   </compatibility>
   <comments>This extension allows a backend user to add, edit and cancel line item(s) associated with a Contribution.
   </comments>
-  <comments>PATCH 2</comments>
+  <comments>PATCH 4</comments>
   <civix>
     <namespace>CRM/Lineitemedit</namespace>
     <format>23.02.1</format>
