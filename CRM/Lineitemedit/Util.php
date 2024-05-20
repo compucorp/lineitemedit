@@ -1000,6 +1000,10 @@ ORDER BY  ps.id, pf.weight ;
     if (is_null($end)) {
       $end = Civi::settings()->get('line_item_number');
     }
+    $priceSet = self::getDefaultPriceSet();
+    if (empty($priceSet['financialtype.is_active'])) {
+      self::updateToFirstActiveFinancialType($priceSet['id']);
+    }
     $priceField = civicrm_api3('PriceField',
       'getsingle',
       [
@@ -1038,13 +1042,54 @@ ORDER BY  ps.id, pf.weight ;
   }
 
   public static function disableEnablePriceField($enable = FALSE) {
-    $priceSetID = civicrm_api3('PriceSet', 'getvalue', ['name' => 'default_contribution_amount', 'return' => 'id']);
-    $priceFields = civicrm_api3('PriceField', 'get', ['price_set_id' => $priceSetID, 'is_active' => !$enable])['values'];
+    $priceSet = self::getDefaultPriceSet();
+
+    $priceFields = civicrm_api3('PriceField', 'get', ['price_set_id' => $priceSet['id'], 'is_active' => !$enable])['values'];
+    if (empty($priceSet['financialtype.is_active'])) {
+      self::updateToFirstActiveFinancialType($priceSet['id'], array_column($priceFields, 'id'));
+    }
     foreach ($priceFields as $id => $value) {
       if ($value['name'] != 'contribution_amount') {
         civicrm_api3('PriceField', 'create', ['id' => $id, 'is_active' => $enable]);
       }
     }
+  }
+
+  private static function updateToFirstActiveFinancialType(int $priceSetId, array $priceFieldIds = []): void {
+    if (empty($priceSetId) && empty($priceFieldIds)) {
+      return;
+    }
+    if (empty($priceFieldIds)) {
+      $priceFieldIds = array_values(Civi\api4\PriceField::get(FALSE)
+        ->addSelect('id')
+        ->addWhere('price_set_id', '=', $priceSetId)
+        ->execute()
+        ->column('id'));
+    }
+
+    $activeFinancialType = Civi\api4\FinancialType::get(FALSE)
+      ->addSelect('id')
+      ->addWhere('is_active', '=', TRUE)
+      ->execute()
+      ->first();
+
+    Civi\api4\PriceSet::update(FALSE)
+      ->addValue('financial_type_id', $activeFinancialType['id'])
+      ->addWhere('id', '=', $priceSetId)
+      ->execute();
+    Civi\api4\PriceFieldValue::update(FALSE)
+      ->addValue('financial_type_id', $activeFinancialType['id'])
+      ->addWhere('price_field_id', 'IN', $priceFieldIds)
+      ->execute();
+  }
+
+  private static function getDefaultPriceSet(): array {
+    return Civi\api4\PriceSet::get(FALSE)
+      ->addSelect('priceset.id', 'financialtype.is_active')
+      ->addWhere('name', '=', 'default_contribution_amount')
+      ->addJoin('FinancialType', 'LEFT', NULL, ['financial_type_id', '=', 'financialtype.id'])
+      ->execute()
+      ->first();
   }
 
 }
