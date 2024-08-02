@@ -135,7 +135,7 @@
         if(lineItems.count<=25) {
           observer.disconnect();
         }
-      }, 
+      },
       function(failure) {
         console.log(failure);
       });
@@ -153,7 +153,7 @@
     if (!isNotQuickConfig && action == 2) {
       $('#totalAmountORaddLineitem, #add_item').hide();
     }
-    
+
     // after form rule validation when page reloads then show only those line-item which were chosen and hide others
     $.each(submittedRows, function(e, num) {
       isSubmitted = true;
@@ -236,8 +236,8 @@
     var $form = $('form.{/literal}{$form.formClass}{literal}');
     $('select[id^="item_financial_type_id_"], input[id^="item_unit_price_"], input[id^="item_qty_"]', $form).on('change', function() {
       var row = $(this).closest('tr');
-      var unit_price = $('input[id^="item_unit_price_"]', row).val();
-      var qty = $('input[id^="item_qty_"]', row).val();
+      var unit_price = parseFloat($('input[id^="item_unit_price_"]', row).val().replace(thousandMarker, '').replace(separator, '.'));
+      var qty = parseFloat($('input[id^="item_qty_"]', row).val().replace(thousandMarker, '').replace(separator, '.'));
       var totalAmount = (qty * unit_price);
       $('input[id^="item_line_total_"]', row).val(CRM.formatMoney(totalAmount, true));
       if ($('input[id^="item_tax_amount"]', row).length) {
@@ -250,20 +250,10 @@
     $('input[id="total_amount"]', $form).on('change', calculateTotalAmount);
 
     function calculateTotalAmount(){
-      var formattedMoney = CRM.formatMoney(1234.56);
-      var thousandSeparator = ',';
-      var decimalSeparator = '.';
-
-      // Detect the thousand and decimal separators (the old core settings are going away)
-      if ((result = /1(.?)234(.?)56/.exec(formattedMoney)) !== null) {
-        thousandSeparator = result[1];
-        decimalSeparator = result[2];
-      }
-
       let total_amount = 0;
 
       if ($('input[id="total_amount"]').length) {
-        total_amount = parseFloat(($('input[id="total_amount"]').val().replace(thousandSeparator,'') || 0));
+        total_amount = parseFloat(($('input[id="total_amount"]').val().replace(thousandMarker,'') || 0));
       }
 
       if (!$("#total_amount").is(":hidden")) {
@@ -271,9 +261,9 @@
       }
 
       $.each($('.line-item-row'), function() {
-        total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
+        total_amount += parseFloat(($('input[id^="item_line_total_"]', this).val().replace(thousandMarker,'').replace(separator,'.') || 0));
         if ($('input[id^="item_tax_amount"]', this).length) {
-          total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandSeparator,'').replace(decimalSeparator,'.') || 0));
+          total_amount += parseFloat(($('input[id^="item_tax_amount"]', this).val().replace(thousandMarker,'').replace(separator,'.') || 0));
         }
       });
 
