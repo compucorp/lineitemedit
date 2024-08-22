@@ -1,6 +1,7 @@
 <?php
 
 require_once 'lineitemedit.civix.php';
+use CRM_Lineitemedit_ExtensionUtil as E;
 
 /**
  * Implements hook_civicrm_config().
@@ -30,6 +31,19 @@ function lineitemedit_civicrm_enable() {
 }
 
 /**
+ * Implements hook_civicrm_permission().
+ *
+ */
+function lineitemedit_civicrm_permission(&$permissions) {
+  foreach(['add', 'edit', 'cancel'] as $operation) {
+    $permissions["$operation line item"] = [
+      'label' => E::ts("Edit Line Item: $operation line item"),
+      'description' => E::ts("Gives non-admin users to $operation line item(s) associated to a contribution"),
+    ];
+  }
+}
+
+/**
  * Implements hook_civicrm_container().
  */
 function lineitemedit_civicrm_container(\Symfony\Component\DependencyInjection\ContainerBuilder $container) {
@@ -51,7 +65,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
 
   if ($formName == 'CRM_Contribute_Form_Contribution') {
     $contributionID = NULL;
-    if (!empty($form->_id) && ($form->_action & CRM_Core_Action::UPDATE)) {
+    if (!empty($form->_id) && ($form->_action & CRM_Core_Action::UPDATE) && CRM_Core_Permission::check('edit line item')) {
       $contributionID = $form->_id;
       $pricesetFieldsCount = NULL;
       $isQuickConfig = empty($form->_lineItems) ? TRUE : FALSE;
@@ -76,7 +90,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
       }
     }
 
-    if (!($form->_action & CRM_Core_Action::DELETE)) {
+    if (!($form->_action & CRM_Core_Action::DELETE) && CRM_Core_Permission::check('delete line item')) {
       $form->assign('contribution_id',$contributionID);
       Civi::service('angularjs.loader')->addModules(['afLineItems', 'afLineItemsTax']);
 
@@ -96,7 +110,8 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
 function lineitemedit_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Contribute_Form_Contribution' &&
     !empty($form->_id) &&
-    ($form->_action & CRM_Core_Action::UPDATE)
+    ($form->_action & CRM_Core_Action::UPDATE) &&
+    CRM_Core_Permission::check('edit line item')
   ) {
     $lineItems = CRM_Price_BAO_LineItem::getLineItemsByContributionID($form->_id);
     foreach ($lineItems as $id => $lineItem) {
@@ -128,7 +143,7 @@ function lineitemedit_civicrm_validateForm($formName, &$fields, &$files, &$form,
 
 function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
   if ($entity == 'Contribution') {
-    if ($op == 'create' && empty($params['price_set_id'])) {
+    if ($op == 'create' && CRM_Core_Permission::check('add line item') && empty($params['price_set_id'])) {
       $lineItemParams = [];
       $financialTypes = [];
       $taxEnabled = (bool) Civi::settings()->get('invoicing');
@@ -173,7 +188,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
         $params['financial_type_id'] = $financialTypes[0];
       }
     }
-    elseif ($op == 'edit') {
+    elseif ($op == 'edit' && CRM_Core_Permission::check('edit line item')) {
       $newLineItemParams = $lineItemParams = $newLineItem = [];
       for ($i = 0; $i <= 10; $i++) {
         $lineItemParams[$i] = [];
@@ -257,7 +272,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
 }
 
 function lineitemedit_civicrm_post($op, $entity, $entityID, &$obj) {
-  if ($entity == 'Contribution' && $op == 'edit') {
+  if ($entity == 'Contribution' && $op == 'edit' && CRM_Core_Permission::check('edit line item')) {
     $entityID = (string) $entityID;
     $contriParams = Civi::cache('lineitemEditor')->get($entityID);
     if (!empty($contriParams)) {

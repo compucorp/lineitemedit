@@ -1,5 +1,7 @@
 <?php
 
+use CRM_Lineitemedit_ExtensionUtil as E;
+
 require_once 'CRM/Core/Form.php';
 
 /**
@@ -79,7 +81,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
     foreach ($fieldNames as $fieldName) {
       $required = TRUE;
       if ($fieldName == 'line_total') {
-        $this->add('text', 'line_total', ts('Total amount'), array(
+        $this->add('text', 'line_total', E::ts('Total amount'), array(
           'size' => 6,
           'maxlength' => 14,
           'readonly' => TRUE)
@@ -135,7 +137,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
 
     if (!CRM_Utils_Rule::numeric($fields['qty'])) {
       if ($self->_isQuickConfig || $self->_priceFieldInfo['is_enter_qty'] == 0) {
-        $errors['qty'] = ts('Please enter a numeric quantity');
+        $errors['qty'] = E::ts('Please enter a numeric quantity');
       }
     }
 
