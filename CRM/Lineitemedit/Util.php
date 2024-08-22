@@ -1,5 +1,7 @@
 <?php
 
+use CRM_Lineitemedit_ExtensionUtil as E;
+
 class CRM_Lineitemedit_Util {
 
   /**
@@ -28,7 +30,7 @@ class CRM_Lineitemedit_Util {
         'name' => ts(''),
         'url' => 'civicrm/lineitem/edit',
         'qs' => 'reset=1&id=%%id%%',
-        'title' => ts('Edit Line item'),
+        'title' => E::ts('Edit Line item'),
         'ref' => ' crm-i fa-pencil',
         'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::UPDATE),
       ),
@@ -36,17 +38,17 @@ class CRM_Lineitemedit_Util {
         'name' => ts(''),
         'url' => 'civicrm/lineitem/cancel',
         'qs' => 'reset=1&id=%%id%%',
-        'title' => ts('Cancel Line item'),
+        'title' => E::ts('Cancel Line item'),
         'ref' => ' crm-i fa-undo',
         'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::DELETE),
       ),
     );
 
     $permissions = array(CRM_Core_Permission::VIEW);
-    if (CRM_Core_Permission::check('edit contributions')) {
+    if (CRM_Core_Permission::check('edit contributions') && CRM_Core_Permission::check('edit line item')) {
       $permissions[] = CRM_Core_Permission::EDIT;
     }
-    if (CRM_Core_Permission::check('delete in CiviContribute')) {
+    if (CRM_Core_Permission::check('delete in CiviContribute') && CRM_Core_Permission::check('delete line item')) {
       $permissions[] = CRM_Core_Permission::DELETE;
     }
     $mask = CRM_Core_Action::mask($permissions);
@@ -85,10 +87,10 @@ class CRM_Lineitemedit_Util {
    */
   public static function getAddLineItemLink($contributionID) {
     $permissions = array(CRM_Core_Permission::VIEW);
-    if (CRM_Core_Permission::check('edit contributions')) {
+    if (CRM_Core_Permission::check('edit contributions') && CRM_Core_Permission::check('edit line item')) {
       $permissions[] = CRM_Core_Permission::EDIT;
     }
-    if (CRM_Core_Permission::check('delete in CiviContribute')) {
+    if (CRM_Core_Permission::check('delete in CiviContribute') && CRM_Core_Permission::check('delete line item')) {
       $permissions[] = CRM_Core_Permission::DELETE;
     }
     $mask = CRM_Core_Action::mask($permissions);
@@ -101,10 +103,10 @@ class CRM_Lineitemedit_Util {
 
     $links = array(
       CRM_Core_Action::ADD => array(
-        'name' => ts('Add Item(s)'),
+        'name' => E::ts('Add Item(s)'),
         'url' => 'civicrm/lineitem/add',
         'qs' => 'reset=1&contribution_id=%%contribution_id%%',
-        'title' => ts('Add Line-item(s)'),
+        'title' => E::ts('Add Line-item(s)'),
       ),
     );
 
@@ -345,16 +347,16 @@ class CRM_Lineitemedit_Util {
 
     $sql = "
 SELECT    pfv.id as pfv_id,
-          pfv.label as pfv_label,
+          IF(pf.html_type = 'Checkbox', pf.label, pfv.label) as pfv_label,
           pf.id as pf_id,
           ps.title as ps_label,
           ps.is_quick_config as is_quick,
           ps.id as set_id
 FROM      civicrm_price_field_value as pfv
-LEFT JOIN civicrm_price_field as pf ON (pf.id = pfv.price_field_id)
+LEFT JOIN civicrm_price_field as pf ON (pf.id = pfv.price_field_id AND pf.is_active = 1)
 LEFT JOIN civicrm_price_set as ps ON (ps.id = pf.price_set_id AND ps.is_active = 1)
 LEFT JOIN civicrm_line_item as cli ON cli.contribution_id = {$contributionID} AND cli.qty != 0 AND pf.id = cli.price_field_id
-WHERE  ps.is_quick_config = 0 AND ((cli.id IS NULL )  || (pf.html_type = 'Checkbox' AND pfv.id NOT IN (SELECT price_field_value_id FROM civicrm_line_item
+WHERE ps.is_quick_config = 0 AND ((cli.id IS NULL ) || (pf.html_type = 'Checkbox' AND pfv.id NOT IN (SELECT price_field_value_id FROM civicrm_line_item
   WHERE contribution_id = {$contributionID} AND qty <> 0))) AND ps.id IN (SELECT pf.price_set_id FROM civicrm_line_item cli
   INNER JOIN civicrm_price_field as pf ON (pf.id = cli.price_field_id AND cli.contribution_id = {$contributionID})
 )
@@ -926,10 +928,13 @@ ORDER BY  ps.id, pf.weight ;
   public static function buildLineItemRows(&$form, $contributionID = NULL) {
     $fields = CRM_Lineitemedit_Util::getLineitemFieldNames(TRUE);
     $submittedValues = $pvIDs = [];
-    if (!empty($contributionID)) {
-      $options = CRM_Lineitemedit_Util::getPriceFieldLists($contributionID) + ['new' => ts('Create new item')];
+    if (!empty($contributionID) && CRM_Core_Permission::check('add line item')) {
+      $options = CRM_Lineitemedit_Util::getPriceFieldLists($contributionID);
+      if (CRM_Core_Permission::check('administer CiviCRM')) {
+        $options +=  ['new' => E::ts('Create new item')];
+      }
       $pvIDs = array_keys($options);
-      $form->add('select', 'add_item', ts('Add item'), ['' => '- select any price-field -'] + $options);
+      $form->add('select', 'add_item', E::ts('Add item'), ['' => E::ts('- select any price-field -')] + $options);
     }
     for ($rowNumber = 0; $rowNumber <= Civi::settings()->get('line_item_number'); $rowNumber++) {
       if (!empty($_POST['item_unit_price']) && !empty($_POST['item_unit_price'][$rowNumber])) {
@@ -964,10 +969,10 @@ ORDER BY  ps.id, pf.weight ;
           $fieldName = sprintf("item_%s[%d]", $fieldName, $rowNumber);
           $form->addField($fieldName, $properties);
           if ($fieldName == "item_unit_price[$rowNumber]") {
-            $form->addRule($fieldName, ts('Please enter a monetary value for this field.'), 'money');
+            $form->addRule($fieldName, E::ts('Please enter a monetary value for this field.'), 'money');
           }
           elseif ($fieldName == "item_qty[$rowNumber]") {
-            $form->addRule($fieldName, ts('Qty must be a number (with or without decimal point).'), 'numeric');
+            $form->addRule($fieldName, E::ts('Qty must be a number (with or without decimal point).'), 'numeric');
             $form->setDefaults([$fieldName => 1.00]);
           }
         }
@@ -1022,7 +1027,7 @@ ORDER BY  ps.id, pf.weight ;
     $totalPF = civicrm_api3('PriceField', 'getcount', ['price_set_id' => $priceSetID]);
 
     $newPriceField = civicrm_api3('PriceField', 'create', [
-      'label' => ts('Additional Lineitem ' . $totalPF),
+      'label' => E::ts('Additional Lineitem %1', [1 => $totalPF]),
       'price_set_id' => $priceSetID,
       'html_type' => "Text",
       'is_enter_qty' => FALSE,
@@ -1031,7 +1036,7 @@ ORDER BY  ps.id, pf.weight ;
     ]);
 
     $newPriceFieldValue = civicrm_api3('PriceFieldValue', 'create', [
-      'label' => ts('Additional Lineitem %1', [1 => $totalPF]),
+      'label' => E::ts('Additional Lineitem %1', [1 => $totalPF]),
       'price_field_id' => $newPriceField['id'],
       'amount' => 1.00,
       'financial_type_id' => $previousLineItem['financial_type_id'],

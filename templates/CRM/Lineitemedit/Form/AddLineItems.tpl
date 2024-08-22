@@ -1,4 +1,5 @@
 {* template block that contains the new field *}
+{crmScope extensionKey='biz.jmaconsulting.lineitemedit'}
 <span id="totalAmountORaddLineitem">&nbsp;OR
   {if $form.add_item.html}
     <span class="label">{$form.add_item.label}</span>
@@ -135,7 +136,7 @@
         if(lineItems.count<=25) {
           observer.disconnect();
         }
-      }, 
+      },
       function(failure) {
         console.log(failure);
       });
@@ -153,7 +154,7 @@
     if (!isNotQuickConfig && action == 2) {
       $('#totalAmountORaddLineitem, #add_item').hide();
     }
-    
+
     // after form rule validation when page reloads then show only those line-item which were chosen and hide others
     $.each(submittedRows, function(e, num) {
       isSubmitted = true;
@@ -344,3 +345,4 @@
   });
   {/literal}
 </script>
+{/crmScope}

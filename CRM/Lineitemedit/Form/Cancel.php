@@ -1,5 +1,7 @@
 <?php
 
+use CRM_Lineitemedit_ExtensionUtil as E;
+
 /**
  * Form controller class
  *
@@ -37,12 +39,12 @@ class CRM_Lineitemedit_Form_Cancel extends CRM_Core_Form {
   }
 
   public function buildQuickForm() {
-    $this->assign('message', ts('WARNING: Cancelling this line item will affect the related contribution and update the associated financial transactions. Do you want to continue?'));
+    $this->assign('message', E::ts('WARNING: Cancelling this line item will affect the related contribution and update the associated financial transactions. Do you want to continue?'));
 
     $this->addButtons(array(
       array(
         'type' => 'submit',
-        'name' => ts('Cancel Item'),
+        'name' => E::ts('Cancel Item'),
         'isDefault' => TRUE,
       ),
       array(
