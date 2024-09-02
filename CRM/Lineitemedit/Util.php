@@ -1060,31 +1060,31 @@ ORDER BY  ps.id, pf.weight ;
       return;
     }
     if (empty($priceFieldIds)) {
-      $priceFieldIds = array_values(Civi\api4\PriceField::get(FALSE)
+      $priceFieldIds = array_values(Civi\Api4\PriceField::get(FALSE)
         ->addSelect('id')
         ->addWhere('price_set_id', '=', $priceSetId)
         ->execute()
         ->column('id'));
     }
 
-    $activeFinancialType = Civi\api4\FinancialType::get(FALSE)
+    $activeFinancialType = Civi\Api4\FinancialType::get(FALSE)
       ->addSelect('id')
       ->addWhere('is_active', '=', TRUE)
       ->execute()
       ->first();
 
-    Civi\api4\PriceSet::update(FALSE)
+    Civi\Api4\PriceSet::update(FALSE)
       ->addValue('financial_type_id', $activeFinancialType['id'])
       ->addWhere('id', '=', $priceSetId)
       ->execute();
-    Civi\api4\PriceFieldValue::update(FALSE)
+    Civi\Api4\PriceFieldValue::update(FALSE)
       ->addValue('financial_type_id', $activeFinancialType['id'])
       ->addWhere('price_field_id', 'IN', $priceFieldIds)
       ->execute();
   }
 
   private static function getDefaultPriceSet(): array {
-    return Civi\api4\PriceSet::get(FALSE)
+    return Civi\Api4\PriceSet::get(FALSE)
       ->addSelect('priceset.id', 'financialtype.is_active')
       ->addWhere('name', '=', 'default_contribution_amount')
       ->addJoin('FinancialType', 'LEFT', NULL, ['financial_type_id', '=', 'financialtype.id'])
