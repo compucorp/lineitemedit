@@ -120,6 +120,17 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
     if ($op == 'create' && empty($params['price_set_id'])) {
       $lineItemParams = [];
       $taxEnabled = (bool) Civi::settings()->get('invoicing');
+      
+      if (empty($params['item_label'])) {
+        $params['item_label'] = CRM_Utils_Request::retrieve('item_label', 'String', NULL, FALSE, NULL, 'POST');
+        $params['item_financial_type_id'] = CRM_Utils_Request::retrieve('item_financial_type_id', 'String', NULL, FALSE, NULL, 'POST');
+        $params['item_qty'] = CRM_Utils_Request::retrieve('item_qty', 'String', NULL, FALSE, NULL, 'POST');
+        $params['item_unit_price'] = CRM_Utils_Request::retrieve('item_unit_price', 'String', NULL, FALSE, NULL, 'POST');
+        $params['item_line_total'] = CRM_Utils_Request::retrieve('item_line_total', 'String', NULL, FALSE, NULL, 'POST');
+        $params['item_price_field_value_id'] = CRM_Utils_Request::retrieve('item_price_field_value_id', 'String', NULL, FALSE, NULL, 'POST');
+        $params['item_tax_amount'] = CRM_Utils_Request::retrieve('item_tax_amount', 'String', NULL, FALSE, NULL, 'POST');
+      }
+
       for ($i = 0; $i <= Civi::settings()->get('line_item_number'); $i++) {
         $lineItemParams[$i] = [];
         $notFound = TRUE;
