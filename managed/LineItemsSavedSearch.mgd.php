@@ -2,6 +2,8 @@
 
 use CRM_Lineitemedit_ExtensionUtil as E;
 
+// There seems to be inconsistency with whether BASEURL has a trailing slash so when removing it, we also handle what is now a leading slash.
+$buttonRelativeUrl = '/' . ltrim(str_replace(CIVICRM_UF_BASEURL, '', E::url('templates/CRM/Lineitemedit/Form/Buttons.html')));
 return [
     [
       'name' => 'Line_Items',
@@ -170,7 +172,7 @@ return [
                 ],
               ],
               [
-                'path' => E::url('templates/CRM/Lineitemedit/Form/Buttons.html'),
+                'path' => $buttonRelativeUrl,
                 'type' => 'include',
                 'alignment' => 'text-right',
               ],
@@ -289,7 +291,7 @@ return [
                 ],
               ], 
               [
-                'path' => E::url('templates/CRM/Lineitemedit/Form/Buttons.html'),
+                'path' => $buttonRelativeUrl,
                 'type' => 'include',
                 'alignment' => 'text-right',
               ],
