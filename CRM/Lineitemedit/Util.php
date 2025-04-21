@@ -986,7 +986,8 @@ ORDER BY  ps.id, pf.weight ;
             }
           }
           else {
-            $priceSetDetails = civicrm_api3('PriceSet', 'get', [
+            // ??= operator to avoid calling api3 more than once, improve performance
+            $priceSetDetails ??= civicrm_api3('PriceSet', 'get', [
               'sequential' => 1,
               'name' => "default_contribution_amount",
               'is_quick_config' => 1,
