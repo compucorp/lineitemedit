@@ -120,8 +120,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
     if ($op == 'create' && empty($params['price_set_id'])) {
       $lineItemParams = [];
       $taxEnabled = (bool) Civi::settings()->get('invoicing');
-      
-      if (!isset($params['item_label'])) {
+      if (!isset($params['item_label']) && CRM_Utils_Request::retrieve('item_label', 'String') !== NULL) {
         $params['item_label'] = CRM_Utils_Request::retrieve('item_label', 'String');
         $params['item_financial_type_id'] = CRM_Utils_Request::retrieve('item_financial_type_id', 'String');
         $params['item_qty'] = CRM_Utils_Request::retrieve('item_qty', 'String');
