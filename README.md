@@ -1,6 +1,6 @@
 # Line Item Editor
 
-This extension allows a staff user to add, edit and delete line items of a contribution.
+This extension allows a staff user to add, edit and cancel line items of a contribution.
 
 Installation
 ------------
