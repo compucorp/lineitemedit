@@ -152,8 +152,8 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
         $notFound = TRUE;
         foreach (['item_label', 'item_financial_type_id', 'item_qty', 'item_unit_price', 'item_line_total', 'item_price_field_value_id'] as $attribute) {
           if (!empty($params[$attribute]) && !empty($params[$attribute][$i])) {
-            $notFound = FALSE;
             if (in_array($attribute, ['item_line_total', 'item_unit_price'])) {
+              $notFound = FALSE;
               $params[$attribute][$i] = CRM_Utils_Rule::cleanMoney($params[$attribute][$i]);
             }
             $lineItemParams[$i][str_replace('item_', '', $attribute)] = $params[$attribute][$i];
