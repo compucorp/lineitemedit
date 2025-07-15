@@ -18,7 +18,7 @@
   <version>2.8</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>6.2.0</ver>
+    <ver>6.2</ver>
   </compatibility>
   <comments>This extension allows a backend user to add, edit and cancel line item(s) associated with a Contribution.
   </comments>
