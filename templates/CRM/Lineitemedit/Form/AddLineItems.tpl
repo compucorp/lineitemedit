@@ -238,7 +238,9 @@
     $('select[id^="item_financial_type_id_"], input[id^="item_unit_price_"], input[id^="item_qty_"]', $form).on('change', function() {
       var row = $(this).closest('tr');
       var unit_price = parseFloat($('input[id^="item_unit_price_"]', row).val().replace(thousandMarker, '').replace(separator, '.'));
+      unit_price = isNaN(unit_price) ? 0 : unit_price;
       var qty = parseFloat($('input[id^="item_qty_"]', row).val().replace(thousandMarker, '').replace(separator, '.'));
+      qty = isNaN(qty) ? 0 : qty;
       var totalAmount = (qty * unit_price);
       $('input[id^="item_line_total_"]', row).val(CRM.formatMoney(totalAmount, true));
       if ($('input[id^="item_tax_amount"]', row).length) {
