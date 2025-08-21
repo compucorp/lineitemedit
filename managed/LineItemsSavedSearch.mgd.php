@@ -2,8 +2,6 @@
 
 use CRM_Lineitemedit_ExtensionUtil as E;
 
-// There seems to be inconsistency with whether BASEURL has a trailing slash so when removing it, we also handle what is now a leading slash.
-$buttonRelativeUrl = '/' . ltrim(str_replace(CIVICRM_UF_BASEURL, '', E::url('templates/CRM/Lineitemedit/Form/Buttons.html')));
 return [
   [
     'name' => 'Line_Items',
@@ -124,8 +122,46 @@ return [
               'sortable' => FALSE,
             ],
             [
-              'path' => $buttonRelativeUrl,
-              'type' => 'include',
+              'size' => 'btn-xs',
+              'links' => [
+                [
+                  'path' => 'civicrm/lineitem/edit?reset=1&id=[id]',
+                  'icon' => 'fa-pencil',
+                  'text' => '',
+                  'style' => 'default',
+                  'condition' => [
+                    'check user permission',
+                    '=',
+                    [
+                      'edit line item',
+                    ],
+                  ],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+                [
+                  'path' => 'civicrm/lineitem/cancel?reset=1&id=[id]',
+                  'icon' => 'fa-rotate-left',
+                  'text' => '',
+                  'style' => 'default',
+                  'condition' => [
+                    'check user permission',
+                    '=',
+                    [
+                      'cancel line item',
+                    ],
+                  ],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+              ],
+              'type' => 'buttons',
               'alignment' => 'text-right',
             ],
           ],
@@ -212,8 +248,46 @@ return [
               'sortable' => FALSE,
             ],
             [
-              'path' => $buttonRelativeUrl,
-              'type' => 'include',
+              'size' => 'btn-xs',
+              'links' => [
+                [
+                  'path' => 'civicrm/lineitem/edit?reset=1&id=[id]',
+                  'icon' => 'fa-pencil',
+                  'text' => '',
+                  'style' => 'default',
+                  'conditions' => [
+                    'check user permission',
+                    '=',
+                    [
+                      'edit line item',
+                    ],
+                  ],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+                [
+                  'path' => 'civicrm/lineitem/cancel?reset=1&id=[id]',
+                  'icon' => 'fa-rotate-left',
+                  'text' => '',
+                  'style' => 'default',
+                  'conditions' => [
+                    'check user permission',
+                    '=',
+                    [
+                      'cancel line item',
+                    ],
+                  ],
+                  'task' => '',
+                  'entity' => '',
+                  'action' => '',
+                  'join' => '',
+                  'target' => 'crm-popup',
+                ],
+              ],
+              'type' => 'buttons',
               'alignment' => 'text-right',
             ],
           ],
