@@ -21,9 +21,11 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
 
   public $_isQuickConfig = FALSE;
 
-  public $_priceFieldInfo = array();
+  public $_priceFieldInfo = [];
 
   protected $_lineitemInfo;
+
+  protected $submittableMoneyFields = ['unit_price', 'line_total', 'tax_amount'];
 
   public function preProcess() {
     $this->_id = CRM_Utils_Request::retrieve('id', 'Positive', $this);
@@ -45,7 +47,12 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
     $this->_lineitemInfo = civicrm_api3('lineItem', 'getsingle', array('id' => $this->_id));
     $this->_lineitemInfo['tax_amount'] = $this->_lineitemInfo['tax_amount'] ?? 0.00;
     foreach (CRM_Lineitemedit_Util::getLineitemFieldNames() as $attribute) {
-      $this->_values[$attribute] = $this->_lineitemInfo[$attribute] ?? 0;
+      if (in_array($attribute, $this->submittableMoneyFields)) {
+        $this->_values[$attribute] = CRM_Utils_Money::formatLocaleNumericRoundedForDefaultCurrency(abs($this->_lineitemInfo[$attribute]));
+      }
+      else {
+        $this->_values[$attribute] = $this->_lineitemInfo[$attribute] ?? 0;
+      }
     }
     $this->_values['currency'] = CRM_Core_DAO::getFieldValue(
       'CRM_Financial_DAO_Currency',
@@ -145,9 +152,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
   }
 
   public function postProcess() {
-    $values = $this->exportValues();
-    $values['line_total'] = CRM_Utils_Rule::cleanMoney($values['line_total']);
-
+    $values = $this->getSubmittedValues();
     $balanceAmount = ($values['line_total'] - $this->_lineitemInfo['line_total']);
     $contactId = CRM_Core_DAO::getFieldValue('CRM_Contribute_BAO_Contribution',
       $this->_lineitemInfo['contribution_id'],

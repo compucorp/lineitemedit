@@ -16,8 +16,10 @@
       }
 
       var $form = $('form.{/literal}{$form.formClass}{literal}');
+      var thousandMarker = "{/literal}{$config->monetaryThousandSeparator}{literal}";
+      var separator = "{/literal}{$config->monetaryDecimalPoint}{literal}";
       $('#qty, #unit_price, #financial_type_id', $form).change( function() {
-        var unit_price = $('#unit_price', $form).val();
+        var unit_price = $('#unit_price', $form).val().replace(thousandMarker,'').replace(separator,'.');
         var qty = $('#qty', $form).val();
         var totalAmount = CRM.formatMoney((qty * unit_price), true);
         $('#line_total', $form).val(totalAmount);
