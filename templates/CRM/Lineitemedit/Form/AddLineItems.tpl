@@ -56,7 +56,7 @@
       <td>{$form.item_unit_price.$rowNumber.html}</td>
       <td>{$form.item_line_total.$rowNumber.html}</td>
       {if $taxEnabled}<td>{$form.item_tax_amount.$rowNumber.html}</td>{/if}
-      <td>{$form.item_price_field_value_id.$rowNumber.html}<a href=# class="remove_item crm-hover-button" title='add-items'><i class="crm-i fa-times"></i></a></td>
+      <td>{$form.item_price_field_value_id.$rowNumber.html}<a href=# class="remove_item crm-hover-button" title='add-items'><i class="crm-i fa-times" role="img" aria-hidden="true"></i></a></td>
     </tr>
   {/section}
 </table>
