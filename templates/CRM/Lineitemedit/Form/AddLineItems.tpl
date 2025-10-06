@@ -145,11 +145,15 @@
     // Start observing the document for changes
     observer.observe(document.body, { childList: true, subtree: true });
 
-    calculateTotalAmount();
     var isSubmitted = false,
     submittedRows = $.parseJSON('{/literal}{$lineItemSubmitted}{literal}'),
     action = '{/literal}{$action}{literal}'
-    isNotQuickConfig = '{/literal}{$pricesetFieldsCount}{literal}';
+    isNotQuickConfig = '{/literal}{$pricesetFieldsCount}{literal}'
+    lineItemTable = {/literal}{$lineItemTable|@json_encode}{literal};
+
+    const lineItemRows = lineItemTable?.rows ?? [];
+
+    calculateTotalAmount();
 
     if (!isNotQuickConfig && action == 2) {
       $('#totalAmountORaddLineitem, #add_item').hide();
@@ -257,7 +261,7 @@
         total_amount = parseFloat(($('input[id="total_amount"]').val().replace(thousandMarker,'') || 0));
       }
 
-      if (!$("#total_amount").is(":hidden")) {
+      if (!$("#total_amount").is(":hidden") && lineItemRows.length < 1 ) {
         total_amount += calculateTaxAmount($('select[id="financial_type_id"]').val(), total_amount);
       }
 
@@ -268,7 +272,31 @@
         }
       });
 
+      total_amount = handleTotalAmountOnUpdate(total_amount);
       $('#line-total').text(CRM.formatMoney(total_amount));
+      $('#line-total').data('raw-total', total_amount).trigger('datachanged');
+
+      return total_amount;
+    }
+
+    function handleTotalAmountOnUpdate(total_amount) {
+      if (action != 2) {
+        return total_amount;
+      }
+
+      if (lineItemRows.length > 0) {
+        lineItemTable.rows.forEach(lineItem => {
+          if (lineItem.tax_amount.length) {
+            total_amount += parseFloat((lineItem.tax_amount.replace(thousandMarker,'') || 0));
+          }
+        });
+      }
+
+      if ((lineItemRows.length + $('.line-item-row:visible').length) > 1) {
+        $("#total_amount").prop('readonly', true);
+      } else {
+        $("#total_amount").prop('readonly', false);
+      }
 
       return total_amount;
     }

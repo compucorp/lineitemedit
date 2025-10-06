@@ -147,6 +147,16 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
       $lineItemParams = [];
       $financialTypes = [];
       $taxEnabled = (bool) Civi::settings()->get('invoicing');
+      if (!isset($params['item_label']) && CRM_Utils_Request::retrieve('item_label', 'String') !== NULL) {
+        $params['item_label'] = CRM_Utils_Request::retrieve('item_label', 'String');
+        $params['item_financial_type_id'] = CRM_Utils_Request::retrieve('item_financial_type_id', 'String');
+        $params['item_qty'] = CRM_Utils_Request::retrieve('item_qty', 'String');
+        $params['item_unit_price'] = CRM_Utils_Request::retrieve('item_unit_price', 'String');
+        $params['item_line_total'] = CRM_Utils_Request::retrieve('item_line_total', 'String');
+        $params['item_price_field_value_id'] = CRM_Utils_Request::retrieve('item_price_field_value_id', 'String');
+        $params['item_tax_amount'] = CRM_Utils_Request::retrieve('item_tax_amount', 'String');
+        $params['tax_amount'] = 0; // previous tax can be removed since it will be recalculated below
+      }
       for ($i = 0; $i <= Civi::settings()->get('line_item_number'); $i++) {
         $lineItemParams[$i] = [];
         $notFound = TRUE;
@@ -178,7 +188,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
           if (!empty($lineItemParams[$i]['line_total']) && !empty($lineItemParams[$i]['price_field_id'])) {
             $priceSetID = CRM_Core_DAO::getFieldValue('CRM_Price_BAO_PriceField', $lineItemParams[$i]['price_field_id'], 'price_set_id');
             if (!empty($params['line_item'][$priceSetID])) {
-              $params['line_item'][$priceSetID][$lineItemParams[$i]['price_field_id']] = $lineItemParams[$i];
+              $params['line_item'][$priceSetID][$lineItemParams[$i]['price_field_value_id']] = $lineItemParams[$i];
             }
           }
         }
