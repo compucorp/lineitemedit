@@ -22,6 +22,7 @@
   </compatibility>
   <comments>This extension allows a backend user to add, edit and cancel line item(s) associated with a Contribution.
   </comments>
+  <comments>PATCH 1</comments>
   <requires>
     <ext>org.civicrm.afform</ext>
     <ext>org.civicrm.search_kit</ext>
