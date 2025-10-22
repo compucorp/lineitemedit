@@ -622,7 +622,7 @@ ORDER BY  ps.id, pf.weight ;
         $entityID = $result['entity_id'];
         $entityTable = 'civicrm_participant';
       }
-      catch (CiviCRM_API3_Exception $e) {
+      catch (CRM_Core_Exception $e) {
         // do nothing.
       }
     }
