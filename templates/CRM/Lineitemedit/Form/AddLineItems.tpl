@@ -105,9 +105,8 @@
 
         // Find the element with the 'active' class within the pagination list
         var activePageElement = document.querySelector('.pagination-page.active');
-
         // Get the page number from the text content of the element
-        var currentPageNumber = activePageElement.textContent.trim();
+        var currentPageNumber = activePageElement ? activePageElement.textContent.trim() : 1;
 
         editButtons.each(function(index, element) {
           // Get line item ID
