@@ -35,12 +35,18 @@ function lineitemedit_civicrm_enable() {
  *
  */
 function lineitemedit_civicrm_permission(&$permissions) {
-  foreach(['add', 'edit', 'cancel'] as $operation) {
-    $permissions["$operation line item"] = [
-      'label' => E::ts("Edit Line Item: $operation line item"),
-      'description' => E::ts("Gives non-admin users to $operation line item(s) associated to a contribution"),
-    ];
-  }
+  $permissions['add line item'] = [
+    'label' => E::ts('Edit Line Item: add line item'),
+    'description' => E::ts('Gives non-admin users to add line item(s) associated to a contribution.'),
+  ];
+  $permissions['edit line item'] = [
+    'label' => E::ts('Edit Line Item: edit line item'),
+    'description' => E::ts('Gives non-admin users to edit line item(s) associated to a contribution.'),
+  ];
+  $permissions['cancel line item'] = [
+    'label' => E::ts('Edit Line Item: cancel line item'),
+    'description' => E::ts('Gives non-admin users to cancel line item(s) associated to a contribution.'),
+  ];
 }
 
 /**
