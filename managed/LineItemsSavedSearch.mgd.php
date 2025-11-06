@@ -129,11 +129,13 @@ return [
                   'icon' => 'fa-pencil',
                   'text' => '',
                   'style' => 'default',
-                  'condition' => [
-                    'check user permission',
-                    '=',
+                  'conditions' => [
                     [
-                      'edit line item',
+                      'check user permission',
+                      '=',
+                      [
+                        'edit line item',
+                      ],
                     ],
                   ],
                   'task' => '',
@@ -147,11 +149,13 @@ return [
                   'icon' => 'fa-rotate-left',
                   'text' => '',
                   'style' => 'default',
-                  'condition' => [
-                    'check user permission',
-                    '=',
+                  'conditions' => [
                     [
-                      'cancel line item',
+                      'check user permission',
+                      '=',
+                      [
+                        'cancel line item',
+                      ],
                     ],
                   ],
                   'task' => '',
@@ -256,10 +260,12 @@ return [
                   'text' => '',
                   'style' => 'default',
                   'conditions' => [
-                    'check user permission',
-                    '=',
                     [
-                      'edit line item',
+                      'check user permission',
+                      '=',
+                      [
+                        'edit line item',
+                      ],
                     ],
                   ],
                   'task' => '',
@@ -274,10 +280,12 @@ return [
                   'text' => '',
                   'style' => 'default',
                   'conditions' => [
-                    'check user permission',
-                    '=',
                     [
-                      'cancel line item',
+                      'check user permission',
+                      '=',
+                      [
+                        'cancel line item',
+                      ],
                     ],
                   ],
                   'task' => '',
