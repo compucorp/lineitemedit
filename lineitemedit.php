@@ -86,7 +86,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
         $form->assign('pricesetFieldsCount', FALSE);
       }
       else {
-        $pricesetFieldsCount = CRM_Core_Smarty::singleton()->get_template_vars('pricesetFieldsCount');
+        $pricesetFieldsCount = CRM_Core_Smarty::singleton()->getTemplateVars('pricesetFieldsCount');
         CRM_Lineitemedit_Util::formatLineItemList($form->_lineItems, $pricesetFieldsCount);
         $form->assign('lineItem', $form->_lineItems);
         $form->assign('pricesetFieldsCount', TRUE);
