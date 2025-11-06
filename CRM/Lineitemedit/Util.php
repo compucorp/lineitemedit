@@ -1002,7 +1002,7 @@ ORDER BY  ps.id, pf.weight ;
                 ],
               ],
             ]);
-            $form->setDefaults(["item_price_field_value_id[$rowNumber]" => $priceSetDetails['values'][0]['api.PriceField.get']['values'][$rowNumber]['api.PriceFieldValue.get']['id']]);
+             $form->setDefaults(["item_price_field_value_id[$rowNumber]" => $priceSetDetails['values'][0]['api.PriceField.get']['values'][$rowNumber]['api.PriceFieldValue.get']['values'][0]['id']]);
           }
         }
       }
