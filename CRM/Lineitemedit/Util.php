@@ -27,7 +27,7 @@ class CRM_Lineitemedit_Util {
     );
     $links = array(
       CRM_Core_Action::UPDATE => array(
-        'name' => ts(''),
+        'name' => '',
         'url' => 'civicrm/lineitem/edit',
         'qs' => 'reset=1&id=%%id%%',
         'title' => E::ts('Edit Line item'),
@@ -35,7 +35,7 @@ class CRM_Lineitemedit_Util {
         'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::UPDATE),
       ),
       CRM_Core_Action::DELETE => array(
-        'name' => ts(''),
+        'name' => '',
         'url' => 'civicrm/lineitem/cancel',
         'qs' => 'reset=1&id=%%id%%',
         'title' => E::ts('Cancel Line item'),
