@@ -773,11 +773,16 @@ ORDER BY  ps.id, pf.weight ;
             2 => [$toFinancialAccount, 'Positive'],
             3 => [$isPayment, 'Integer'],
           ]);
+        if (!$trxnId) {
+          $trxnId = CRM_Core_BAO_FinancialTrxn::getFinancialTrxnId($contributionId, 'DESC')['financialTrxnId'];
+        }
         $fiId = CRM_Core_DAO::singleValueQuery("SELECT entity_id FROM civicrm_entity_financial_trxn WHERE financial_trxn_id = %1 AND entity_table = 'civicrm_financial_item'", [1 => [$trxnId, 'Positive']]);
         $trxnId = ['id' => $trxnId];
       }
       if ($values['tax_amount'] != 0) {
         $taxTerm = Civi::settings()->get('tax_term');
+        $newFinancialAccount = (int) CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($values['new_tax_ft'], 'Sales Tax Account is');
+        $prevFinancialAccount = (int) CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($values['tax_ft'], 'Sales Tax Account is');
         $taxFinancialItemInfo = array_merge($financialItem, array(
           'amount' => $values['tax_amount'],
           'description' => $taxTerm,
@@ -787,7 +792,7 @@ ORDER BY  ps.id, pf.weight ;
           // create financial item for tax amount related to added line item
           CRM_Financial_BAO_FinancialItem::create($taxFinancialItemInfo, NULL, $trxnId);
         }
-        elseif ($values['ft_amount'] < 0) {
+        elseif ($values['ft_amount'] < 0 && $newFinancialAccount > 0 && $prevFinancialAccount > 0) {
           // if we are changing the financial type using contribute.create then because in edit form we had already change the line item's FT type before we got to the contribution.create
           // The sales tax reversal will have been done using the wrong financial account id. Here we re-set this. This is locked in via CRM_Lineitemedit_Form_SaleTax_EditTest::testFinancialTypeChangeWithPriceSet unit test
           $salesTaxItem = CRM_Core_DAO::singleValueQuery("SELECT fi.id
@@ -797,13 +802,15 @@ ORDER BY  ps.id, pf.weight ;
             WHERE eft.entity_id = %1 AND eft.entity_table = 'civicrm_contribution'
             AND fi.financial_account_id = %2 AND fi.amount = %3", [
               1 => [$contributionId, 'Positive'],
-              2 => [CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($values['new_tax_ft'], 'Sales Tax Account is'), 'Positive'],
+              2 => [$newFinancialAccount, 'Positive'],
               3 => [$values['tax_amount'], 'String'],
             ]);
-          CRM_Core_DAO::executeQuery("UPDATE civicrm_financial_item SET financial_account_id = %1 WHERE id = %2", [
-            1 => [CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($values['tax_ft'], 'Sales Tax Account is'), 'Positive'],
-            2 => [$salesTaxItem, 'Positive'],
-          ]);
+          if ($salesTaxItem) {
+            CRM_Core_DAO::executeQuery("UPDATE civicrm_financial_item SET financial_account_id = %1 WHERE id = %2", [
+              1 => [$prevFinancialAccount, 'Positive'],
+              2 => [$salesTaxItem, 'Positive'],
+            ]);
+          }
         }
       }
       $values['deferred_line_item']['financial_item_id'] = $fiId;
@@ -1054,7 +1061,7 @@ ORDER BY  ps.id, pf.weight ;
     if (empty($priceSet['financialtype.is_active'])) {
       self::updateToFirstActiveFinancialType($priceSet['id']);
     }
-    
+
     $priceField = civicrm_api3('PriceField',
       'getsingle',
       [
