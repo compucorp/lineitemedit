@@ -256,7 +256,14 @@
     function calculateTotalAmount(){
       let total_amount = 0;
 
-      if ($('input[id="total_amount"]').length) {
+      if (lineItemRows.length > 0) {
+        lineItemTable.rows.forEach(lineItem => {
+          if (lineItem.total_price) {
+            total_amount += parseFloat((lineItem.total_price.replace(thousandMarker,'') || 0));
+          }
+        });
+      }
+      else if ($('input[id="total_amount"]').length) {
         total_amount = parseFloat(($('input[id="total_amount"]').val().replace(thousandMarker,'') || 0));
       }
 
