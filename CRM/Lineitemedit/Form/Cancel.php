@@ -39,7 +39,7 @@ class CRM_Lineitemedit_Form_Cancel extends CRM_Core_Form {
   }
 
   public function buildQuickForm() {
-    $this->assign('message', E::ts('WARNING: Cancelling this line item will affect the related contribution and update the associated financial transactions. Do you want to continue?'));
+    $this->assign('message', E::ts('WARNING: Cancelling this line item will affect the related contribution and update the associated financial transactions. The quantity and total price will be set to 0 for this line item. Do you want to continue?'));
 
     $this->addButtons(array(
       array(

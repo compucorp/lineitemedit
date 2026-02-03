@@ -96,7 +96,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
       }
     }
 
-    if (!($form->_action & CRM_Core_Action::DELETE)) {
+    if (!($form->_action & CRM_Core_Action::DELETE) && CRM_Core_Permission::check('cancel line item')) {
       $form->assign('contribution_id',$contributionID);
       Civi::service('angularjs.loader')->addModules(['afLineItems', 'afLineItemsTax']);
 
