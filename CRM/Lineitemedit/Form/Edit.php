@@ -197,6 +197,8 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
       $entityTab = ($this->_lineitemInfo['entity_table'] == 'civicrm_membership') ? 'member' : 'participant';
       $this->ajaxResponse['updateTabs']['#tab_' . $entityTab] = CRM_Contact_BAO_Contact::getCountComponent(str_replace('civicrm_', '', $this->_lineitemInfo['entity_table']), $contactId);
     }
+
+    $this->ajaxResponse['needReload'] = TRUE;
     parent::postProcess();
   }
 

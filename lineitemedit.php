@@ -72,6 +72,15 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
   if ($formName == 'CRM_Contribute_Form_Contribution') {
     $contributionID = NULL;
     if (!empty($form->_id) && ($form->_action & CRM_Core_Action::UPDATE) && CRM_Core_Permission::check('edit line item')) {
+      CRM_Core_Resources::singleton()->addScript("
+         CRM.$(function($) {
+           $(document).on('crmFormSuccess.crmForm', function(e, data) {
+             if (data.needReload) {
+               $('button[data-identifier=\"_qf_Contribution_upload\"]').hide();
+             }
+           });
+         });
+      ");
       $contributionID = $form->_id;
       $pricesetFieldsCount = NULL;
       $isQuickConfig = empty($form->_lineItems) ? TRUE : FALSE;
@@ -114,6 +123,15 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
 }
 
 function lineitemedit_civicrm_postProcess($formName, &$form) {
+  if (in_array($formName, ['CRM_Lineitemedit_Form_Edit', 'CRM_Lineitemedit_Form_Cancel'])) {
+     CRM_Core_Resources::singleton()->addScript("
+      CRM.$(function($) {
+        if (window.parent && window.parent !== window) {
+          window.parent.location.reload();
+        }
+      });
+    ");
+  }
   if ($formName == 'CRM_Contribute_Form_Contribution' &&
     !empty($form->_id) &&
     ($form->_action & CRM_Core_Action::UPDATE) &&
