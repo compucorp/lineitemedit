@@ -77,6 +77,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
            $(document).on('crmFormSuccess.crmForm', function(e, data) {
              if (data.needReload) {
                $('button[data-identifier=\"_qf_Contribution_upload\"]').hide();
+               $('button[data-identifier=\"_qf_Contribution_cancel\"]').text(ts('Done'));
              }
            });
          });
