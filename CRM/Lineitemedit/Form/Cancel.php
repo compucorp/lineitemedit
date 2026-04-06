@@ -94,6 +94,7 @@ class CRM_Lineitemedit_Form_Cancel extends CRM_Core_Form {
     }
 
     parent::postProcess();
+    $this->ajaxResponse['needReload'] = TRUE;
   }
 
 }
