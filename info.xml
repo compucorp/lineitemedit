@@ -14,11 +14,11 @@
     <url desc="Support">https://lab.civicrm.org/extensions/lineitemedit/-/issues</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2026-02-03</releaseDate>
-  <version>2.9</version>
+  <releaseDate>2026-04-06</releaseDate>
+  <version>2.10</version>
   <develStage>stable</develStage>
   <compatibility>
-    <ver>6.10</ver>
+    <ver>6.12</ver>
   </compatibility>
   <comments>This extension allows a backend user to add, edit and cancel line item(s) associated with a Contribution.
   </comments>
