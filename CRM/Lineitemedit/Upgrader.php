@@ -34,7 +34,16 @@ class CRM_Lineitemedit_Upgrader extends CRM_Extension_Upgrader_Base {
    */
   public function upgrade_2000() {
     $this->ctx->log->info('Applying update 2000');
-    CRM_Lineitemedit_Util::generatePriceField();
+    // Guard the price-field generation: it makes several APIv4/v3 lookups that
+    // can throw during a large multi-version upgrade (e.g. before the default
+    // price set/field are resolvable). Log and continue so it does not abort the
+    // upgrade queue.
+    try {
+      CRM_Lineitemedit_Util::generatePriceField();
+    }
+    catch (\Throwable $e) {
+      $this->ctx->log->info($e->getMessage());
+    }
     return TRUE;
   }
 
@@ -60,7 +69,16 @@ class CRM_Lineitemedit_Upgrader extends CRM_Extension_Upgrader_Base {
    */
   public function upgrade_2500() {
     $this->ctx->log->info('Applying update 2500');
-    CRM_Lineitemedit_Util::generatePriceField(11, 50);
+    // Guard the price-field generation: it makes several APIv4/v3 lookups that
+    // can throw during a large multi-version upgrade (e.g. before the default
+    // price set/field are resolvable). Log and continue so it does not abort the
+    // upgrade queue.
+    try {
+      CRM_Lineitemedit_Util::generatePriceField(11, 50);
+    }
+    catch (\Throwable $e) {
+      $this->ctx->log->info($e->getMessage());
+    }
     return TRUE;
   }
 
