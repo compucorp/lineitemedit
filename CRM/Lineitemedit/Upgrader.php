@@ -42,7 +42,7 @@ class CRM_Lineitemedit_Upgrader extends CRM_Extension_Upgrader_Base {
       CRM_Lineitemedit_Util::generatePriceField();
     }
     catch (\Throwable $e) {
-      $this->ctx->log->error('Failed to generate price fields in upgrade_2000: ' . $e->getMessage());
+      $this->ctx->log->error('Failed to generate price fields in upgrade_2000: ' . $e->getMessage(), ['exception' => $e]);
     }
     return TRUE;
   }
@@ -77,7 +77,7 @@ class CRM_Lineitemedit_Upgrader extends CRM_Extension_Upgrader_Base {
       CRM_Lineitemedit_Util::generatePriceField(11, 50);
     }
     catch (\Throwable $e) {
-      $this->ctx->log->error('Failed to generate price fields in upgrade_2500: ' . $e->getMessage());
+      $this->ctx->log->error('Failed to generate price fields in upgrade_2500: ' . $e->getMessage(), ['exception' => $e]);
     }
     return TRUE;
   }
