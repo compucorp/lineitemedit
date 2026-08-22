@@ -48,7 +48,7 @@ class CRM_Lineitemedit_Util {
     if (CRM_Core_Permission::check('edit contributions') && CRM_Core_Permission::check('edit line item')) {
       $permissions[] = CRM_Core_Permission::EDIT;
     }
-    if (CRM_Core_Permission::check('delete in CiviContribute') && CRM_Core_Permission::check('delete line item')) {
+    if (CRM_Core_Permission::check('delete in CiviContribute') && CRM_Core_Permission::check('cancel line item')) {
       $permissions[] = CRM_Core_Permission::DELETE;
     }
     $mask = CRM_Core_Action::mask($permissions);
@@ -90,7 +90,7 @@ class CRM_Lineitemedit_Util {
     if (CRM_Core_Permission::check('edit contributions') && CRM_Core_Permission::check('edit line item')) {
       $permissions[] = CRM_Core_Permission::EDIT;
     }
-    if (CRM_Core_Permission::check('delete in CiviContribute') && CRM_Core_Permission::check('delete line item')) {
+    if (CRM_Core_Permission::check('delete in CiviContribute') && CRM_Core_Permission::check('cancel line item')) {
       $permissions[] = CRM_Core_Permission::DELETE;
     }
     $mask = CRM_Core_Action::mask($permissions);
