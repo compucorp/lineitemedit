@@ -108,12 +108,23 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
       }
 
       $ele = $this->addField($fieldName, $properties, $required);
+      $decimalRestrictedFields = CRM_Lineitemedit_Util::getDecimalRestrictedFields();
+      if (isset($decimalRestrictedFields[$fieldName])) {
+        $this->addRule(
+          $fieldName,
+          CRM_Lineitemedit_Util::getDecimalPlacesErrorMessage($decimalRestrictedFields[$fieldName]),
+          'callback',
+          ['CRM_Lineitemedit_Util', 'decimalPlacesWithinLimit']
+        );
+      }
     }
     $this->assign('fieldNames', $fieldNames);
 
     $this->assign('taxRates', json_encode(CRM_Core_PseudoConstant::getTaxRates()));
 
     $this->assign('isTaxEnabled', $this->isTaxEnabledInFinancialType($this->_values['financial_type_id']));
+
+    CRM_Lineitemedit_Util::addDecimalPlacesRestrictionScript();
 
     $this->addFormRule(array(__CLASS__, 'formRule'), $this);
 
