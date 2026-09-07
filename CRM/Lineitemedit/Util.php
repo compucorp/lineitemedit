@@ -1,6 +1,83 @@
 <?php
 
+use CRM_Lineitemedit_ExtensionUtil as E;
+
 class CRM_Lineitemedit_Util {
+
+  /**
+   * Maximum number of decimal places allowed in the line item quantity and unit price fields.
+   */
+  const MAX_DECIMAL_PLACES = 2;
+
+  /**
+   * Returns the field names, and their labels, that are restricted to self::MAX_DECIMAL_PLACES decimal places.
+   *
+   * @return array
+   */
+  public static function getDecimalRestrictedFields() {
+    return ['qty' => E::ts('Qty'), 'unit_price' => E::ts('Unit Price')];
+  }
+
+  /**
+   * Checks whether a submitted value holds more decimal places than allowed.
+   *
+   * @param mixed $value
+   * @param int $maxDecimalPlaces
+   *
+   * @return bool
+   */
+  public static function exceedsAllowedDecimalPlaces($value, $maxDecimalPlaces = self::MAX_DECIMAL_PLACES) {
+    if ($value === NULL || $value === '' || is_array($value)) {
+      return FALSE;
+    }
+
+    $value = CRM_Utils_Rule::cleanMoney((string) $value);
+    $decimalPosition = strrpos($value, '.');
+    if ($decimalPosition === FALSE) {
+      return FALSE;
+    }
+    $decimals = preg_replace('/\D/', '', substr($value, $decimalPosition + 1));
+
+    return strlen($decimals) > $maxDecimalPlaces;
+  }
+
+  /**
+   * The validation message shown when a field holds too many decimal places.
+   *
+   * @param string $label
+   * @param int $maxDecimalPlaces
+   *
+   * @return string
+   */
+  public static function getDecimalPlacesErrorMessage($label, $maxDecimalPlaces = self::MAX_DECIMAL_PLACES) {
+    return E::ts('%1 cannot have more than %2 decimal places.', [
+      1 => $label,
+      2 => $maxDecimalPlaces,
+    ]);
+  }
+
+  /**
+   * QuickForm callback rule for the decimal place limit.
+   *
+   * @param mixed $value
+   *
+   * @return bool
+   */
+  public static function decimalPlacesWithinLimit($value) {
+    return !self::exceedsAllowedDecimalPlaces($value);
+  }
+
+  /**
+   * Loads the script that stops more than self::MAX_DECIMAL_PLACES decimal places.
+   */
+  public static function addDecimalPlacesRestrictionScript() {
+    $config = CRM_Core_Config::singleton();
+    Civi::resources()->addScriptFile(E::LONG_NAME, 'js/decimal_places.js')->addVars('lineitemedit', [
+      'maxDecimalPlaces' => self::MAX_DECIMAL_PLACES,
+      'decimalPoint' => $config->monetaryDecimalPoint ?: '.',
+      'thousandSeparator' => $config->monetaryThousandSeparator ?: ',',
+    ]);
+  }
 
   /**
    * Function used to fetch associated line-item(s) of a contribution in tabular format
@@ -892,6 +969,7 @@ ORDER BY  ps.id, pf.weight ;
         $submittedValues[] = $rowNumber;
       }
       foreach ($fields as $fieldName) {
+        $decimalRestrictedLabel = self::getDecimalRestrictedFields()[$fieldName] ?? NULL;
         if ($fieldName != 'price_field_value_id') {
           if (in_array($fieldName, ['line_total', 'tax_amount'])) {
             $form->add('text', "item_{$fieldName}[$rowNumber]", NULL, array(
@@ -919,6 +997,14 @@ ORDER BY  ps.id, pf.weight ;
           }
           $fieldName = sprintf("item_%s[%d]", $fieldName, $rowNumber);
           $form->addField($fieldName, $properties);
+          if ($decimalRestrictedLabel !== NULL) {
+            $form->addRule(
+              $fieldName,
+              self::getDecimalPlacesErrorMessage($decimalRestrictedLabel),
+              'callback',
+              [__CLASS__, 'decimalPlacesWithinLimit']
+            );
+          }
           if ($fieldName == "item_unit_price[$rowNumber]") {
             $form->addRule($fieldName, ts('Please enter a monetary value for this field.'), 'money');
           }
