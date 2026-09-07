@@ -509,4 +509,61 @@ class CRM_Lineitemedit_Form_EditTest extends CRM_Lineitemedit_Form_BaseTest {
     $this->checkArrayEqualsByAttributes($expectedParticipantRecord, $actualParticipantRecord);
   }
 
+  /**
+   * Tests that the decimal place limit is enforced when the form is submitted.
+   */
+  public function testFormRejectsMoreThanTwoDecimalPlaces(): void {
+    $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', ['contribution_id' => $this->_contributionID]);
+    $lineItemInfo['qty'] = '1.234';
+    $lineItemInfo['unit_price'] = '10.987';
+    $_REQUEST['id'] = $lineItemInfo['id'];
+
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Edit', $lineItemInfo);
+    $form->buildForm();
+
+    $this->assertFalse($form->validate(), 'Three decimal places should not pass validation.');
+    $this->assertArrayHasKey('qty', $form->_errors);
+    $this->assertArrayHasKey('unit_price', $form->_errors);
+  }
+
+  /**
+   * Tests that two decimal places are left alone.
+   */
+  public function testFormAcceptsTwoDecimalPlaces(): void {
+    $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', ['contribution_id' => $this->_contributionID]);
+    $lineItemInfo['qty'] = '1.23';
+    $lineItemInfo['unit_price'] = '10.98';
+    $_REQUEST['id'] = $lineItemInfo['id'];
+
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Edit', $lineItemInfo);
+    $form->buildForm();
+    $form->validate();
+
+    $this->assertArrayNotHasKey('qty', $form->_errors);
+    $this->assertArrayNotHasKey('unit_price', $form->_errors);
+  }
+
+  /**
+   * Tests the restricted field names still match this form's element names.
+   *
+   * The rule is attached by looking each element name up in
+   * CRM_Lineitemedit_Util::getDecimalRestrictedFields(). Renaming either side
+   * would stop the rule being attached at all, without anything else failing,
+   * so the two are asserted to still line up.
+   */
+  public function testRestrictedFieldsExistOnTheForm(): void {
+    $lineItemInfo = $this->callAPISuccessGetSingle('LineItem', ['contribution_id' => $this->_contributionID]);
+    $_REQUEST['id'] = $lineItemInfo['id'];
+
+    $form = $this->getFormObject('CRM_Lineitemedit_Form_Edit', $lineItemInfo);
+    $form->buildForm();
+
+    foreach (array_keys(CRM_Lineitemedit_Util::getDecimalRestrictedFields()) as $fieldName) {
+      $this->assertTrue(
+        $form->elementExists($fieldName),
+        sprintf('%s is restricted to two decimal places but is not an element on this form.', $fieldName)
+      );
+    }
+  }
+
 }
