@@ -98,6 +98,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
       $form->assign('cancelUrl', CRM_Utils_System::url('civicrm/lineitem/cancel?reset=1&id=',NULL,FALSE,NULL,FALSE));
 
       CRM_Lineitemedit_Util::buildLineItemRows($form, $contributionID);
+      CRM_Lineitemedit_Util::addDecimalPlacesRestrictionScript();
       // assign this value so Smarty can properly iterate
       $form->assign('lineItemNumber', Civi::settings()->get('line_item_number'));
       CRM_Core_Region::instance('page-body')->add([
