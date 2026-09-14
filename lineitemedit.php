@@ -73,6 +73,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
 
     if (!($form->_action & CRM_Core_Action::DELETE)) {
       CRM_Lineitemedit_Util::buildLineItemRows($form, $contributionID);
+      CRM_Lineitemedit_Util::addDecimalPlacesRestrictionScript();
       // assign this value so Smarty can properly iterate
       $form->assign('lineItemNumber', Civi::settings()->get('line_item_number'));
       CRM_Core_Region::instance('page-body')->add([
