@@ -1,6 +1,6 @@
 # Line Item Editor
 
-This extension allows a staff user to add, edit and delete line items of a contribution.
+This extension allows a staff user to add, edit and cancel line items of a contribution.
 
 Installation
 ------------
@@ -28,3 +28,5 @@ Clicking on the arrow to the left of the contribution amount or the amount link 
 ![image](https://user-images.githubusercontent.com/13468905/30990046-d7e7da56-a46d-11e7-9cf6-3f6b309df41d.png)
 
 After the refund or additional payment is recorded, the contribution status is set to **Completed**
+
+The 'Cancel' button sets the Quantity and Total Price to 0 for that line item.  It does not delete the line item.
