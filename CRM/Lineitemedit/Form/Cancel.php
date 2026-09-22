@@ -24,16 +24,16 @@ class CRM_Lineitemedit_Form_Cancel extends CRM_Core_Form {
 
   public function assignFormVariables() {
     // fetch line item information of given ID
-    $this->_lineitemInfo = civicrm_api3('LineItem', 'getsingle', array('id' => $this->_id));
+    $this->_lineitemInfo = civicrm_api3('LineItem', 'getsingle', ['id' => $this->_id]);
 
     // store related contribution ID
     $this->_prevContributionID = $this->_lineitemInfo['contribution_id'];
 
     // fetch related active lineitems of contribution
-    $count = civicrm_api3('LineItem', 'getcount', array(
+    $count = civicrm_api3('LineItem', 'getcount', [
       'contribution_id' => $this->_prevContributionID,
-      'line_total' => array('>' => 0),
-    ));
+      'line_total' => ['>' => 0],
+    ]);
 
     $this->_multipleLineItem = ($count > 1) ? TRUE : FALSE;
   }
@@ -41,17 +41,17 @@ class CRM_Lineitemedit_Form_Cancel extends CRM_Core_Form {
   public function buildQuickForm() {
     $this->assign('message', E::ts('WARNING: Cancelling this line item will affect the related contribution and update the associated financial transactions. The quantity and total price will be set to 0 for this line item. Do you want to continue?'));
 
-    $this->addButtons(array(
-      array(
+    $this->addButtons([
+      [
         'type' => 'submit',
         'name' => E::ts('Cancel Item'),
         'isDefault' => TRUE,
-      ),
-      array(
+      ],
+      [
         'type' => 'cancel',
         'name' => ts('Close'),
-      ),
-    ));
+      ],
+    ]);
 
     parent::buildQuickForm();
   }
@@ -60,13 +60,13 @@ class CRM_Lineitemedit_Form_Cancel extends CRM_Core_Form {
     CRM_Lineitemedit_Util::cancelEntity($this->_lineitemInfo['entity_id'], $this->_lineitemInfo['entity_table']);
 
     // change total_price and qty of current line item to 0, on cancel
-    civicrm_api3('LineItem', 'create', array(
+    civicrm_api3('LineItem', 'create', [
       'id' => $this->_id,
       'qty' => 0,
       'participant_count' => 0,
       'line_total' => 0.00,
       'tax_amount' => 0.00,
-    ));
+    ]);
 
     // calculate balance, tax and paidamount later used to adjust transaction
     $updatedAmount = CRM_Price_BAO_LineItem::getLineTotal($this->_prevContributionID);

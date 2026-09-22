@@ -18,33 +18,33 @@ class CRM_Lineitemedit_Util {
 
     // TODO: order.get API doesn't fetch cancelled line_items
     if (empty($lineItems)) {
-      $lineItems = civicrm_api3('LineItem', 'Get', array('contribution_id' => $order['contribution_id']));
+      $lineItems = civicrm_api3('LineItem', 'Get', ['contribution_id' => $order['contribution_id']]);
       $lineItems = $lineItems['values'];
     }
 
-    $lineItemTable = array(
-      'rows' => array(),
-    );
-    $links = array(
-      CRM_Core_Action::UPDATE => array(
+    $lineItemTable = [
+      'rows' => [],
+    ];
+    $links = [
+      CRM_Core_Action::UPDATE => [
         'name' => '',
         'url' => 'civicrm/lineitem/edit',
         'qs' => 'reset=1&id=%%id%%',
         'title' => E::ts('Edit Line item'),
         'ref' => ' crm-i fa-pencil',
         'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::UPDATE),
-      ),
-      CRM_Core_Action::DELETE => array(
+      ],
+      CRM_Core_Action::DELETE => [
         'name' => '',
         'url' => 'civicrm/lineitem/cancel',
         'qs' => 'reset=1&id=%%id%%',
         'title' => E::ts('Cancel Line item'),
         'ref' => ' crm-i fa-undo',
         'weight' => CRM_Core_Action::getWeight(CRM_Core_Action::DELETE),
-      ),
-    );
+      ],
+    ];
 
-    $permissions = array(CRM_Core_Permission::VIEW);
+    $permissions = [CRM_Core_Permission::VIEW];
     if (CRM_Core_Permission::check('edit contributions') && CRM_Core_Permission::check('edit line item')) {
       $permissions[] = CRM_Core_Permission::EDIT;
     }
@@ -53,15 +53,15 @@ class CRM_Lineitemedit_Util {
     }
     $mask = CRM_Core_Action::mask($permissions);
     foreach ($lineItems as $key => $lineItem) {
-      $actions = array(
+      $actions = [
         'id' => $lineItem['id'],
-      );
+      ];
 
       $actionLinks = $links;
       if ($lineItem['qty'] == 0 || $lineItem['line_total'] == 0) {
         unset($actionLinks[CRM_Core_Action::DELETE]);
       }
-      $lineItemTable['rows'][$key] = array(
+      $lineItemTable['rows'][$key] = [
         'id' => $lineItem['id'],
         'item' => $lineItem['label'] ?? '',
         'financial_type' => CRM_Core_PseudoConstant::getLabel('CRM_Contribute_BAO_Contribution', 'financial_type_id', $lineItem['financial_type_id']),
@@ -71,7 +71,7 @@ class CRM_Lineitemedit_Util {
         'tax_amount' => $lineItem['tax_amount'] ?? 0.00,
         'currency' => $order['currency'],
         'actions' => CRM_Core_Action::formLink($actionLinks, $mask, $actions),
-      );
+      ];
     }
 
     return $lineItemTable;
@@ -86,7 +86,7 @@ class CRM_Lineitemedit_Util {
    *   HTML anchor tag of 'Add Item(s)' action
    */
   public static function getAddLineItemLink($contributionID) {
-    $permissions = array(CRM_Core_Permission::VIEW);
+    $permissions = [CRM_Core_Permission::VIEW];
     if (CRM_Core_Permission::check('edit contributions') && CRM_Core_Permission::check('edit line item')) {
       $permissions[] = CRM_Core_Permission::EDIT;
     }
@@ -101,21 +101,21 @@ class CRM_Lineitemedit_Util {
       return '';
     }
 
-    $links = array(
-      CRM_Core_Action::ADD => array(
+    $links = [
+      CRM_Core_Action::ADD => [
         'name' => E::ts('Add Item(s)'),
         'url' => 'civicrm/lineitem/add',
         'qs' => 'reset=1&contribution_id=%%contribution_id%%',
         'title' => E::ts('Add Line-item(s)'),
-      ),
-    );
+      ],
+    ];
 
     return sprintf('<b>%s</b>',
       CRM_Core_Action::formLink(
         $links, $mask,
-        array(
+        [
           'contribution_id' => $contributionID,
-        )
+        ]
       )
     );
   }
@@ -183,7 +183,7 @@ class CRM_Lineitemedit_Util {
    *
    */
   public static function insertFinancialItemOnAdd($lineItem, $trxn) {
-    $contribution = civicrm_api3('Contribution', 'getsingle', array('id' => $lineItem['contribution_id']));
+    $contribution = civicrm_api3('Contribution', 'getsingle', ['id' => $lineItem['contribution_id']]);
 
     $accountRelName = self::getFinancialAccountRelationship($contribution['id'], $lineItem['id']);
     $revenueFinancialAccountID = CRM_Contribute_PseudoConstant::getRelationalFinancialAccount(
@@ -191,7 +191,7 @@ class CRM_Lineitemedit_Util {
       $accountRelName
     );
 
-    $newFinancialItem = array(
+    $newFinancialItem = [
       'transaction_date' => date('YmdHis'),
       'contact_id' => $contribution['contact_id'],
       'description' => ($lineItem['qty'] != 1 ? $lineItem['qty'] . ' of ' : '') . $lineItem['label'],
@@ -201,18 +201,18 @@ class CRM_Lineitemedit_Util {
       'status_id' => array_search('Unpaid', CRM_Core_PseudoConstant::get('CRM_Financial_DAO_FinancialItem', 'status_id')),
       'entity_table' => 'civicrm_line_item',
       'entity_id' => $lineItem['id'],
-    );
-    $trxnId = array('id' => $trxn);
+    ];
+    $trxnId = ['id' => $trxn];
 
     // create financial item for added line item
     $newFinancialItemDAO = CRM_Financial_BAO_FinancialItem::create($newFinancialItem, NULL, $trxnId);
     if (!empty($lineItem['tax_amount']) && $lineItem['tax_amount'] != 0) {
       $taxTerm = Civi::settings()->get('tax_term');
-      $taxFinancialItemInfo = array_merge($newFinancialItem, array(
+      $taxFinancialItemInfo = array_merge($newFinancialItem, [
         'amount' => $lineItem['tax_amount'],
         'description' => $taxTerm,
         'financial_account_id' => self::getFinancialAccountId($lineItem['financial_type_id']),
-      ));
+      ]);
       // create financial item for tax amount related to added line item
       CRM_Financial_BAO_FinancialItem::create($taxFinancialItemInfo, NULL, $trxnId);
     }
@@ -231,7 +231,7 @@ class CRM_Lineitemedit_Util {
    */
   public static function createDeferredTrxn($contributionID, $lineItem, $context) {
     if (Civi::settings()->get('deferred_revenue_enabled') ?? 0) {
-      $lineItem = array($contributionID => array($lineItem['id'] => $lineItem));
+      $lineItem = [$contributionID => [$lineItem['id'] => $lineItem]];
       CRM_Core_BAO_FinancialTrxn::createDeferredTrxn($lineItem, $contributionID, TRUE, $context);
     }
   }
@@ -244,20 +244,20 @@ class CRM_Lineitemedit_Util {
    *
    */
   public static function insertFinancialItemOnEdit($lineItemID, $previousLineItem) {
-    $lineItem = civicrm_api3('LineItem', 'Getsingle', array(
+    $lineItem = civicrm_api3('LineItem', 'Getsingle', [
       'id' => $lineItemID,
-    ));
+    ]);
     $lineItem['tax_amount'] = $taxAmount = $lineItem['tax_amount'] ?? 0;
     $newLineTotal = $lineItem['line_total'] + $lineItem['tax_amount'];
     $oldLineTotal = $previousLineItem['line_total'] + ($previousLineItem['tax_amount'] ?? 0);
-    $recordChangedAttributes = array(
+    $recordChangedAttributes = [
       'financialTypeChanged' => ($lineItem['financial_type_id'] != $previousLineItem['financial_type_id']),
       'amountChanged' => ($newLineTotal != $oldLineTotal),
       'taxAmountChanged' => ($lineItem['tax_amount'] != ($previousLineItem['tax_amount'] ?? 0)),
-    );
+    ];
 
     $previousFinancialItem = CRM_Financial_BAO_FinancialItem::getPreviousFinancialItem($lineItemID);
-    $financialItem = array(
+    $financialItem = [
       'transaction_date' => date('YmdHis'),
       'contact_id' => $previousFinancialItem['contact_id'],
       'description' => $previousFinancialItem['description'],
@@ -265,7 +265,7 @@ class CRM_Lineitemedit_Util {
       'financial_account_id' => $previousFinancialItem['financial_account_id'],
       'entity_id' => $lineItemID,
       'entity_table' => 'civicrm_line_item',
-    );
+    ];
 
     $balanceTaxAmount = $lineItem['tax_amount'] - ($previousLineItem['tax_amount'] ?? 0);
     $balanceAmount = $lineItem['line_total'] - $previousLineItem['line_total'];
@@ -298,18 +298,18 @@ class CRM_Lineitemedit_Util {
    ORDER BY eft.id DESC
    LIMIT 1; ";
 
-    $dao = CRM_Core_DAO::executeQuery($query, array(1 => array($financialItemID, 'Integer')));
-    $financialTrxn = array();
+    $dao = CRM_Core_DAO::executeQuery($query, [1 => [$financialItemID, 'Integer']]);
+    $financialTrxn = [];
     while ($dao->fetch()) {
       $financialTrxn = $dao->toArray();
       unset($financialTrxn['id']);
-      $financialTrxn = array_merge($financialTrxn, array(
+      $financialTrxn = array_merge($financialTrxn, [
         'trxn_date' => date('YmdHis'),
         'total_amount' => -$financialTrxn['total_amount'],
         'net_amount' => -$financialTrxn['net_amount'],
         'entity_table' => 'civicrm_financial_item',
         'entity_id' => $financialItemID,
-      ));
+      ]);
     }
 
     return $financialTrxn;
@@ -324,14 +324,14 @@ class CRM_Lineitemedit_Util {
    *       FinancialItem.Get API results
    */
   public static function getPreviousTaxableFinancialItem($entityId) {
-    $params = array(
+    $params = [
       'entity_id' => $entityId,
       'entity_table' => 'civicrm_line_item',
-      'options' => array('limit' => 1, 'sort' => 'id DESC'),
-    );
-    $salesTaxFinancialAccounts = civicrm_api3('FinancialAccount', 'get', array('is_tax' => 1));
+      'options' => ['limit' => 1, 'sort' => 'id DESC'],
+    ];
+    $salesTaxFinancialAccounts = civicrm_api3('FinancialAccount', 'get', ['is_tax' => 1]);
     if ($salesTaxFinancialAccounts['count']) {
-      $params['financial_account_id'] = array('IN' => array_keys($salesTaxFinancialAccounts['values']));
+      $params['financial_account_id'] = ['IN' => array_keys($salesTaxFinancialAccounts['values'])];
     }
     return civicrm_api3('FinancialItem', 'get', $params);
   }
@@ -364,7 +364,7 @@ ORDER BY  ps.id, pf.weight ;
 ";
     $dao = CRM_Core_DAO::executeQuery($sql);
 
-    $priceFields = array();
+    $priceFields = [];
     while ($dao->fetch()) {
       $priceFields[$dao->pfv_id] = sprintf("%s :: %s", $dao->ps_label, $dao->pfv_label);
     }
@@ -386,7 +386,7 @@ ORDER BY  ps.id, pf.weight ;
   public static function getPriceFieldInfo() {
     if (!empty($_GET['pfv_id'])) {
       $priceFieldValueID = $_GET['pfv_id'];
-      $priceFieldValueInfo = civicrm_api3('PriceFieldValue', 'getsingle', array('id' => $priceFieldValueID));
+      $priceFieldValueInfo = civicrm_api3('PriceFieldValue', 'getsingle', ['id' => $priceFieldValueID]);
 
       // calculate tax amount
       $taxRates = CRM_Core_PseudoConstant::getTaxRates();
@@ -400,14 +400,14 @@ ORDER BY  ps.id, pf.weight ;
         )['tax_amount'] ?? 0.00;
       }
 
-      return CRM_Utils_JSON::output(array(
+      return CRM_Utils_JSON::output([
         'qty' => 1,
         'label' => $priceFieldValueInfo['label'],
         'financial_type_id' => $priceFieldValueInfo['financial_type_id'],
         'unit_price' => Civi::format()->machineMoney($priceFieldValueInfo['amount']),
         'line_total' => Civi::format()->machineMoney($priceFieldValueInfo['amount']),
         'tax_amount' => Civi::format()->machineMoney(($priceFieldCValueInfo['tax_amount'] ?? 0.00)),
-      ));
+      ]);
     }
   }
 
@@ -434,7 +434,7 @@ ORDER BY  ps.id, pf.weight ;
 
     // if tax is enabled append tax_amount field name
     if (Civi::settings()->get('invoicing')) {
-      $fieldNames = array_merge($fieldNames, array('tax_amount'));
+      $fieldNames = array_merge($fieldNames, ['tax_amount']);
     }
 
     return $fieldNames;
@@ -452,10 +452,10 @@ ORDER BY  ps.id, pf.weight ;
    * @return bool|\CRM_Core_BAO_FinancialTrxn
    */
   public static function recordAdjustedAmt($updatedAmount, $contributionId, $taxAmount = NULL, $createTrxn = TRUE, $return = FALSE) {
-    $contribution = civicrm_api3('Contribution', 'getsingle', array(
-      'return' => array("total_amount"),
+    $contribution = civicrm_api3('Contribution', 'getsingle', [
+      'return' => ["total_amount"],
       'id' => $contributionId,
-    ));
+    ]);
     $paidAmount = CRM_Contribute_BAO_Contribution::getPaymentInfo(
         $contributionId,
         'contribution',
@@ -502,10 +502,10 @@ ORDER BY  ps.id, pf.weight ;
       $updatedContribution = civicrm_api3(
         'Contribution',
         'getsingle',
-        array(
+        [
           'id' => $contributionId,
-          'return' => array('fee_amount', 'contribution_recur_id', 'currency'),
-        )
+          'return' => ['fee_amount', 'contribution_recur_id', 'currency'],
+        ]
       );
       $contriParams['total_amount'] = $updatedAmount;
       $contriParams['net_amount'] = (float) $updatedAmount - (float) ($updatedContribution['fee_amount'] ?? 0);
@@ -563,17 +563,17 @@ ORDER BY  ps.id, pf.weight ;
     switch ($entityTable) {
       case 'civicrm_membership':
         $cancelStatusID = CRM_Core_PseudoConstant::getKey('CRM_Member_BAO_Membership', 'status_id', 'Cancelled');
-        civicrm_api3('Membership', 'create', array(
+        civicrm_api3('Membership', 'create', [
           'id' => $entityID,
           'status_id' => $cancelStatusID,
-        ));
+        ]);
         break;
 
       case 'civicrm_participant':
-        civicrm_api3('Participant', 'create', array(
+        civicrm_api3('Participant', 'create', [
           'id' => $entityID,
           'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Event_BAO_Participant', 'status_id', 'Cancelled'),
-        ));
+        ]);
         break;
 
       default:
@@ -602,7 +602,7 @@ ORDER BY  ps.id, pf.weight ;
     WHERE pfv.id = %1
      ";
 
-    $dao = CRM_Core_DAO::executeQuery($sql, array(1 => array($priceFieldValueID, 'Integer')));
+    $dao = CRM_Core_DAO::executeQuery($sql, [1 => [$priceFieldValueID, 'Integer']]);
     while ($dao->fetch()) {
       $entityInfo = $dao->toArray();
       break;
@@ -613,12 +613,12 @@ ORDER BY  ps.id, pf.weight ;
     }
     elseif (!$entityId) {
       try {
-        $result = civicrm_api3('LineItem', 'getsingle', array(
-          'return' => array("entity_id", 'entity_table'),
+        $result = civicrm_api3('LineItem', 'getsingle', [
+          'return' => ["entity_id", 'entity_table'],
           'contribution_id' => $contributionID,
           'entity_table' => 'civicrm_participant',
-          'options' => array('limit' => 1),
-        ));
+          'options' => ['limit' => 1],
+        ]);
         $entityID = $result['entity_id'];
         $entityTable = 'civicrm_participant';
       }
@@ -632,25 +632,25 @@ ORDER BY  ps.id, pf.weight ;
         $memTypeNumTerms = $entityInfo['m_nt'] ?? 1;
         $memTypeNumTerms = $qty * $memTypeNumTerms;
         // NOTE: membership.create API already calculate membership dates
-        $params = array(
+        $params = [
           'membership_type_id' => $entityInfo['mt_id'],
           'contact_id' => CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_Contribution', $contributionID, 'contact_id'),
           'num_terms' => $memTypeNumTerms,
           'skipLineItem' => TRUE,
-        );
+        ];
         if ($entityId) {
           $params['id'] = $entityId;
           $params['skipStatusCal'] = FALSE;
         }
         $membership = civicrm_api3('Membership', 'create', $params);
         $entityID = $membership['id'];
-        civicrm_api3('MembershipPayment', 'create', array(
+        civicrm_api3('MembershipPayment', 'create', [
           'membership_id' => $entityID,
           'contribution_id' => $contributionID,
-        ));
+        ]);
         break;
     }
-    return array($entityTable, $entityID);
+    return [$entityTable, $entityID];
   }
 
   public static function recordChangeInAmount(
@@ -661,13 +661,13 @@ ORDER BY  ps.id, pf.weight ;
     $taxAmountChanged
   ) {
     $trxnId = self::createFinancialTrxnEntry($contributionId, $balanceAmount + $balanceTaxAmount);
-    $trxnId = array('id' => $trxnId);
+    $trxnId = ['id' => $trxnId];
     $lineItem = civicrm_api3(
       'lineItem',
       'getsingle',
-      array(
+      [
         'id' => $financialItem['entity_id'],
-      )
+      ]
     );
     $financialItem['amount'] = $balanceAmount;
     $financialItem['status_id'] = CRM_Core_PseudoConstant::getKey('CRM_Financial_DAO_FinancialItem', 'status_id', 'Unpaid');
@@ -676,11 +676,11 @@ ORDER BY  ps.id, pf.weight ;
     $ftItem = CRM_Financial_BAO_FinancialItem::create($financialItem, NULL, $trxnId);
     if ($taxAmountChanged && $balanceTaxAmount != 0) {
       $taxTerm = Civi::settings()->get('tax_term');
-      $taxFinancialItemInfo = array_merge($financialItem, array(
+      $taxFinancialItemInfo = array_merge($financialItem, [
         'amount' => $balanceTaxAmount,
         'description' => $taxTerm,
         'financial_account_id' => CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($lineItem['financial_type_id'], 'Sales Tax Account is'),
-      ));
+      ]);
       // create financial item for tax amount related to added line item
       CRM_Financial_BAO_FinancialItem::create($taxFinancialItemInfo, NULL, $trxnId);
     }
@@ -698,33 +698,33 @@ ORDER BY  ps.id, pf.weight ;
     $contribution = civicrm_api3(
       'Contribution',
       'getsingle',
-      array(
+      [
         'id' => $contributionId,
-        'return' => array('payment_instrument_id', 'revenue_recognition_date'),
-      )
+        'return' => ['payment_instrument_id', 'revenue_recognition_date'],
+      ]
     );
 
     $accountRelName = self::getFinancialAccountRelationship($contributionId, $newLineItem['id']);
     $prevLineItem['deferred_line_total'] = -($prevLineItem['line_total']);
-    $trxnArray[1] = array(
+    $trxnArray[1] = [
       'ft_amount' => -($prevLineItem['line_total'] + $prevLineItem['tax_amount']),
       'fi_amount' => -$prevLineItem['line_total'],
       'tax_amount' => -$prevLineItem['tax_amount'],
       'tax_ft' => $prevLineItem['financial_type_id'],
       'deferred_line_item' => $prevLineItem,
       'new_tax_ft' => $newLineItem['financial_type_id'],
-    );
+    ];
     $taxRates = CRM_Core_PseudoConstant::getTaxRates();
     $taxRates = $taxRates[$newLineItem['financial_type_id']] ?? 0;
     $newtax = CRM_Contribute_BAO_Contribution_Utils::calculateTaxAmount($prevLineItem['line_total'], $taxRates);
-    $trxnArray[2] = array(
+    $trxnArray[2] = [
       'ft_amount' => ($prevLineItem['line_total'] + $newtax['tax_amount']),
       'fi_amount' => $prevLineItem['line_total'],
       'tax_amount' => $newtax['tax_amount'],
       'tax_ft' => $newLineItem['financial_type_id'],
       'new_tax_ft' => $newLineItem['financial_type_id'],
       'deferred_line_item' => $newLineItem,
-    );
+    ];
     $trxnArray[2]['financial_account_id'] = CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($newLineItem['financial_type_id'], $accountRelName);
 
     // previous to_financial_account_id
@@ -752,7 +752,7 @@ ORDER BY  ps.id, pf.weight ;
           $financialItem['financial_account_id'] = $values['financial_account_id'];
         }
         $financialItem['amount'] = $values['fi_amount'];
-        $trxnId = array('id' => $trxnId);
+        $trxnId = ['id' => $trxnId];
         $ftItem = CRM_Financial_BAO_FinancialItem::create($financialItem, NULL, $trxnId);
         $fiId = $ftItem->id;
       }
@@ -778,11 +778,11 @@ ORDER BY  ps.id, pf.weight ;
       }
       if ($values['tax_amount'] != 0) {
         $taxTerm = Civi::settings()->get('tax_term');
-        $taxFinancialItemInfo = array_merge($financialItem, array(
+        $taxFinancialItemInfo = array_merge($financialItem, [
           'amount' => $values['tax_amount'],
           'description' => $taxTerm,
           'financial_account_id' => CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($values['tax_ft'], 'Sales Tax Account is'),
-        ));
+        ]);
         if (!$changeFinancialType) {
           // create financial item for tax amount related to added line item
           CRM_Financial_BAO_FinancialItem::create($taxFinancialItemInfo, NULL, $trxnId);
@@ -813,13 +813,13 @@ ORDER BY  ps.id, pf.weight ;
   }
 
   public static function createFinancialTrxnEntry($contributionId, $amount, $toFinancialAccount = NULL) {
-    $contribution = civicrm_api3('Contribution', 'getsingle', array('id' => $contributionId));
+    $contribution = civicrm_api3('Contribution', 'getsingle', ['id' => $contributionId]);
     $isPayment = TRUE;
     if (!$toFinancialAccount) {
       $toFinancialAccount = CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($contribution['financial_type_id'], 'Accounts Receivable Account is');
       $isPayment = FALSE;
     }
-    $adjustedTrxnValues = array(
+    $adjustedTrxnValues = [
       'from_financial_account_id' => NULL,
       'to_financial_account_id' => $toFinancialAccount,
       'total_amount' => $amount,
@@ -831,7 +831,7 @@ ORDER BY  ps.id, pf.weight ;
       'trxn_date' => date('YmdHis'),
       'currency' => $contribution['currency'],
       'is_payment' => $isPayment,
-    );
+    ];
     $adjustedTrxn = CRM_Core_BAO_FinancialTrxn::create($adjustedTrxnValues);
     return $adjustedTrxn->id;
   }
@@ -839,12 +839,12 @@ ORDER BY  ps.id, pf.weight ;
   public static function getPendingAmount($contributionId, $contributionAmount, $paidAmount) {
     $contributionFinancialTypeId = CRM_Core_DAO::getFieldValue('CRM_Contribute_BAO_Contribution', $contributionId, 'financial_type_id');
     $toFinancialAccountId = CRM_Contribute_PseudoConstant::getRelationalFinancialAccount($contributionFinancialTypeId, 'Accounts Receivable Account is');
-    $hasARAmount = civicrm_api3('EntityFinancialTrxn', 'getCount', array(
+    $hasARAmount = civicrm_api3('EntityFinancialTrxn', 'getCount', [
       'financial_trxn_id.status_id' => "Pending",
       'entity_table' => "civicrm_contribution",
       'entity_id' => $contributionId,
       'financial_trxn_id.to_financial_account_id' => $toFinancialAccountId,
-    ));
+    ]);
     if ($hasARAmount) {
       $pendingAmount = CRM_Core_BAO_FinancialTrxn::getBalanceTrxnAmt($contributionId);
       $pendingAmount = $pendingAmount['total_amount'] ?? 0;
@@ -867,10 +867,10 @@ ORDER BY  ps.id, pf.weight ;
    */
   public static function getFinancialAccountRelationship($contributionId, $lineItemId = NULL) {
     $accountRelName = 'Income Account is';
-    $contribution = civicrm_api3('Contribution', 'getSingle', array(
-      'return' => array("revenue_recognition_date", "receive_date"),
+    $contribution = civicrm_api3('Contribution', 'getSingle', [
+      'return' => ["revenue_recognition_date", "receive_date"],
       'id' => $contributionId,
-    ));
+    ]);
     $date = $contribution['receive_date'] ?? NULL;
     if (!$date) {
       $date = date('Ymt');
@@ -880,10 +880,10 @@ ORDER BY  ps.id, pf.weight ;
     }
     $isMembership = FALSE;
     if ($lineItemId) {
-      $result = civicrm_api3('LineItem', 'getsingle', array(
-        'return' => array("price_field_value_id.membership_type_id"),
+      $result = civicrm_api3('LineItem', 'getsingle', [
+        'return' => ["price_field_value_id.membership_type_id"],
         'id' => $lineItemId,
-      ));
+      ]);
       if (!empty($result['price_field_value_id.membership_type_id'])) {
         $isMembership = TRUE;
       }
@@ -908,12 +908,12 @@ ORDER BY  ps.id, pf.weight ;
    */
   public static function getFinancialAccountId($financialTypeId) {
     $accountRel = key(CRM_Core_PseudoConstant::accountOptionValues('account_relationship', NULL, " AND v.name LIKE 'Sales Tax Account is' "));
-    $searchParams = array(
+    $searchParams = [
       'entity_table' => 'civicrm_financial_type',
       'entity_id' => $financialTypeId,
       'account_relationship' => $accountRel,
-    );
-    $result = array();
+    ];
+    $result = [];
     CRM_Financial_BAO_FinancialTypeAccount::retrieve($searchParams, $result);
     return $result['financial_account_id'] ?? NULL;
   }
@@ -943,19 +943,19 @@ ORDER BY  ps.id, pf.weight ;
       foreach ($fields as $fieldName) {
         if ($fieldName != 'price_field_value_id') {
           if (in_array($fieldName, ['line_total', 'tax_amount'])) {
-            $form->add('text', "item_{$fieldName}[$rowNumber]", NULL, array(
+            $form->add('text', "item_{$fieldName}[$rowNumber]", NULL, [
               'size' => 6,
               'maxlength' => 14,
-              'readonly' => TRUE)
+              'readonly' => TRUE]
             );
             continue;
           }
-          $properties = array(
+          $properties = [
             'entity' => 'LineItem',
             'name' => $fieldName,
             'context' => 'add',
             'action' => 'create',
-          );
+          ];
           if ($fieldName == 'financial_type_id') {
             CRM_Financial_BAO_FinancialType::getAvailableFinancialTypes($financialTypes);
             $properties['options'] = $financialTypes;

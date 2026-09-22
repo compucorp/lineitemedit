@@ -87,13 +87,13 @@ class CRM_Lineitemedit_Form_AddTest extends CRM_Lineitemedit_Form_BaseTest {
       'item_line_total' => $lineTotals,
     ]);
     $form->postProcess();
-    $contribution = $this->callAPISuccessGetSingle('Contribution', array('contact_id' => $contactID));
+    $contribution = $this->callAPISuccessGetSingle('Contribution', ['contact_id' => $contactID]);
 
     $this->assertEquals($expectedTotalAmount, $contribution['total_amount']);
     $this->assertEquals($expectedTotalAmount, $contribution['net_amount']);
 
     for ($rowNumber = 0; $rowNumber <= 3; $rowNumber++) {
-      $lineItem = $this->callAPISuccessGetSingle('LineItem', array('contribution_id' => $contribution['id'], 'price_field_value_id' => $pvIDs[$rowNumber]));
+      $lineItem = $this->callAPISuccessGetSingle('LineItem', ['contribution_id' => $contribution['id'], 'price_field_value_id' => $pvIDs[$rowNumber]]);
       $this->assertEquals($unitQuantities[$rowNumber], $lineItem['qty']);
       $this->assertEquals($itemLabels[$rowNumber], $lineItem['label']);
       $this->assertEquals($financialTypes[$rowNumber], $lineItem['financial_type_id']);
@@ -145,14 +145,14 @@ class CRM_Lineitemedit_Form_AddTest extends CRM_Lineitemedit_Form_BaseTest {
       'item_line_total' => $lineTotals,
     ]);
     $form->postProcess();
-    $contribution = $this->callAPISuccessGetSingle('Contribution', array('contact_id' => $contactID));
+    $contribution = $this->callAPISuccessGetSingle('Contribution', ['contact_id' => $contactID]);
 
     $this->assertEquals($expectedTotalAmount, $contribution['total_amount']);
     $this->assertEquals($expectedTotalAmount, $contribution['net_amount']);
     $this->assertEquals(CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'financial_type_id', 'Campaign Contribution'), $contribution['financial_type_id']);
 
     for ($rowNumber = 0; $rowNumber <= 3; $rowNumber++) {
-      $lineItem = $this->callAPISuccessGetSingle('LineItem', array('contribution_id' => $contribution['id'], 'price_field_value_id' => $pvIDs[$rowNumber]));
+      $lineItem = $this->callAPISuccessGetSingle('LineItem', ['contribution_id' => $contribution['id'], 'price_field_value_id' => $pvIDs[$rowNumber]]);
       $this->assertEquals($unitQuantities[$rowNumber], $lineItem['qty']);
       $this->assertEquals($itemLabels[$rowNumber], $lineItem['label']);
       $this->assertEquals($financialTypes[$rowNumber], $lineItem['financial_type_id']);

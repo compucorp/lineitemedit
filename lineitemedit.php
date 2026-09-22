@@ -87,7 +87,7 @@ function lineitemedit_civicrm_buildForm($formName, &$form) {
       $isQuickConfig = empty($form->_lineItems) ? TRUE : FALSE;
       // Append line-item table only if current contribution has quick config lineitem
       if ($isQuickConfig) {
-        $order = civicrm_api3('Order', 'getsingle', array('id' => $contributionID));
+        $order = civicrm_api3('Order', 'getsingle', ['id' => $contributionID]);
         $lineItemTable = CRM_Lineitemedit_Util::getLineItemTableInfo($order);
         $form->assign('lineItemTable', $lineItemTable);
 
@@ -148,10 +148,10 @@ function lineitemedit_civicrm_postProcess($formName, &$form) {
         else {
           $qtyRatio = (int) $qtyRatio;
         }
-        civicrm_api3('LineItem', 'create', array(
+        civicrm_api3('LineItem', 'create', [
           'id' => $id,
           'qty' => $qtyRatio ? $qtyRatio : 1,
-        ));
+        ]);
       }
     }
   }
@@ -247,7 +247,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
           $entityID,
           $lineItem['qty']
         );
-        $newLineItemParams[] = array(
+        $newLineItemParams[] = [
           'entity_table' => $lineEntityTable,
           'entity_id' => $lineEntityID,
           'contribution_id' => $entityID,
@@ -259,7 +259,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
           'price_field_value_id' => $lineItem['price_field_value_id'],
           'financial_type_id' => $lineItem['financial_type_id'],
           'tax_amount' => $lineItem['tax_amount'] ?? '0.00',
-        );
+        ];
       }
 
       foreach ($newLineItemParams as $lineItem) {
@@ -284,7 +284,7 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
         // record financial item on addition of lineitem
         if ($trxn) {
           foreach ($newLineItem as $lineItemID) {
-            $lineItem = civicrm_api3('LineItem', 'getsingle', array('id' => $lineItemID));
+            $lineItem = civicrm_api3('LineItem', 'getsingle', ['id' => $lineItemID]);
             CRM_Lineitemedit_Util::insertFinancialItemOnAdd($lineItem, $trxn);
           }
         }

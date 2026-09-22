@@ -47,45 +47,45 @@ class CRM_Lineitemedit_Form_CancelTest extends CRM_Lineitemedit_Form_BaseTest {
     $form->postProcess();
 
     // Contribution amount and status after LineItem cancel
-    $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $this->_contributionID));
+    $contribution = $this->callAPISuccessGetSingle('Contribution', ['id' => $this->_contributionID]);
     $this->assertEquals('Pending refund', $contribution['contribution_status']);
     $this->assertEquals(0.00, $contribution['total_amount']);
 
     $actualFinancialItemEntries = $this->getFinancialItemsByLineItemID($id);
-    $expectedFinancialItemEntries = array(
-      array(
+    $expectedFinancialItemEntries = [
+      [
         'contact_id' => $this->_contactID,
         'description' => 'Contribution Amount',
         'amount' => 100.00,
         'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Financial_DAO_FinancialItem', 'status_id', 'Paid'),
-      ),
-      array(
+      ],
+      [
         'contact_id' => $this->_contactID,
         'description' => 'Contribution Amount',
         'amount' => -100.00,
         'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Financial_DAO_FinancialItem', 'status_id', 'Unpaid'),
-      ),
-    );
+      ],
+    ];
     $this->checkArrayEqualsByAttributes($expectedFinancialItemEntries, $actualFinancialItemEntries);
 
     $check = CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'payment_instrument_id', 'Check');
     $actualFinancialTrxnEntries = $this->getFinancialTrxnsByLineItemID($id);
-    $expectedFinancialTrxnEntries = array(
-      array(
+    $expectedFinancialTrxnEntries = [
+      [
         'total_amount' => 100.00,
         'net_amount' => 100.00,
         'is_payment' => 1,
         'payment_instrument_id' => $check,
         'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Completed'),
-      ),
-      array(
+      ],
+      [
         'total_amount' => -100.00,
         'net_amount' => -100.00,
         'is_payment' => 0,
         'payment_instrument_id' => $check,
         'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Pending refund'),
-      ),
-    );
+      ],
+    ];
     $this->checkArrayEqualsByAttributes($expectedFinancialTrxnEntries, $actualFinancialTrxnEntries);
   }
 
@@ -94,81 +94,81 @@ class CRM_Lineitemedit_Form_CancelTest extends CRM_Lineitemedit_Form_BaseTest {
     $priceFieldID = key($priceFieldValues);
     $contactID = $this->createDummyContact();
     $check = CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'payment_instrument_id', 'Check');
-    $params = array(
+    $params = [
       'total_amount' => 100,
       'financial_type_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'financial_type_id', 'Donation'),
       'receive_date' => '2015-04-21 23:27:00',
       'contact_id' => $contactID,
       'price_set_id' => $this->_priceSetID,
       'contribution_status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Completed'),
-      'price_' . $priceFieldID => array(
+      'price_' . $priceFieldID => [
         $priceFieldValues[$priceFieldID][0] => 1,
         $priceFieldValues[$priceFieldID][1] => 1,
-      ),
-    );
+      ],
+    ];
     $_REQUEST = [];
     $form = $this->getContributionForm($params);
     $form->_priceSet = current(CRM_Price_BAO_PriceSet::getSetDetail($this->_priceSetID));
     $form->postProcess();
 
-    $contribution = $this->callAPISuccessGetSingle('Contribution', array('contact_id' => $contactID));
+    $contribution = $this->callAPISuccessGetSingle('Contribution', ['contact_id' => $contactID]);
 
     // Contribution amount and status before LineItem cancel
     $this->assertEquals('Completed', $contribution['contribution_status']);
     $this->assertEquals(300.00, $contribution['total_amount']);
 
     // fetch one of the line-item of amount $100 to cancel
-    $id = $this->callAPISuccessGetValue('LineItem', array(
+    $id = $this->callAPISuccessGetValue('LineItem', [
       'contribution_id' => $contribution['id'],
       'price_field_value_id' => $priceFieldValues[$priceFieldID][0],
       'return' => 'id',
-    ));
+    ]);
     $_REQUEST['id'] = $id;
     $form = $this->getFormObject('CRM_Lineitemedit_Form_Cancel');
     $form->buildForm();
     $form->postProcess();
 
     // Contribution amount and status after LineItem edit
-    $contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $contribution['id']));
+    $contribution = $this->callAPISuccessGetSingle('Contribution', ['id' => $contribution['id']]);
     $this->assertEquals('Pending refund', $contribution['contribution_status']);
     $this->assertEquals(200.00, $contribution['total_amount']);
 
     $actualFinancialItemEntries = $this->getFinancialItemsByLineItemID($id);
-    $expectedFinancialItemEntries = array(
-      array(
+    $expectedFinancialItemEntries = [
+      [
         'contact_id' => $contactID,
         'description' => 'Price Field 1',
         'amount' => 100.00,
         'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Financial_DAO_FinancialItem', 'status_id', 'Paid'),
-      ),
-      array(
+      ],
+      [
         'contact_id' => $contactID,
         'description' => 'Price Field 1',
         'amount' => -100.00,
         'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Financial_DAO_FinancialItem', 'status_id', 'Unpaid'),
-      ),
-    );
+      ],
+    ];
     $this->checkArrayEqualsByAttributes($expectedFinancialItemEntries, $actualFinancialItemEntries);
 
     $actualFinancialTrxnEntries = $this->getFinancialTrxnsByLineItemID($id);
-    $expectedFinancialTrxnEntries = array(
-      array(
+    $expectedFinancialTrxnEntries = [
+      [
         'total_amount' => 300.00,
         'net_amount' => 0.00,
         'net_amount' => 300.00,
         'is_payment' => 1,
         'payment_instrument_id' => $check,
         'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Completed'),
-      ),
-      array(
+      ],
+      [
         'total_amount' => -100.00,
         'net_amount' => 0.00,
         'net_amount' => -100.00,
         'is_payment' => 0,
         'payment_instrument_id' => $check,
         'status_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'contribution_status_id', 'Pending refund'),
-      ),
-    );
+      ],
+    ];
     $this->checkArrayEqualsByAttributes($expectedFinancialTrxnEntries, $actualFinancialTrxnEntries);
   }
 

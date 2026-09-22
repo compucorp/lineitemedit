@@ -55,11 +55,11 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
     if (!empty($this->_contactID)) {
       return;
     }
-    $results = $this->callAPISuccess('Contact', 'create', array(
+    $results = $this->callAPISuccess('Contact', 'create', [
       'contact_type' => 'Individual',
       'first_name' => 'Jose',
       'last_name' => 'Lopez',
-    ));
+    ]);
     $this->_contactID = $results['id'];
   }
 
@@ -67,11 +67,11 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
    * Create dummy contact.
    */
   public function createDummyContact() {
-    $results = $this->callAPISuccess('Contact', 'create', array(
+    $results = $this->callAPISuccess('Contact', 'create', [
       'contact_type' => 'Individual',
       'first_name' => 'Adam' . substr(sha1(rand()), 0, 7),
       'last_name' => 'Cooper' . substr(sha1(rand()), 0, 7),
-    ));
+    ]);
 
     return $results['id'];
   }
@@ -79,12 +79,12 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
   /**
    * Create contact.
    */
-  public function createContribution($params = array()) {
+  public function createContribution($params = []) {
     if (empty($this->_contactID)) {
       $this->createContact();
     }
 
-    $p = array_merge(array(
+    $p = array_merge([
       'contact_id' => $this->_contactID,
       'receive_date' => '2010-01-20',
       'total_amount' => 100.00,
@@ -96,13 +96,13 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
       'invoice_id' => 78910,
       'source' => 'SSF',
       'contribution_status_id' => 1,
-    ), $params);
+    ], $params);
     $contribution = $this->callAPISuccess('contribution', 'create', $p);
     $this->_contributionID = $contribution['id'];
-    $this->_contribution = $this->callAPISuccessGetSingle('Contribution', array('id' => $this->_contributionID));
+    $this->_contribution = $this->callAPISuccessGetSingle('Contribution', ['id' => $this->_contributionID]);
   }
 
-  protected function createPriceSet($priceFieldOptions = array(), $priceSetParams = []) {
+  protected function createPriceSet($priceFieldOptions = [], $priceSetParams = []) {
     $paramsSet['title'] = 'Price Set' . substr(sha1(rand()), 0, 7);
     $paramsSet['name'] = CRM_Utils_String::titleToVar($paramsSet['title']);
     $paramsSet['is_active'] = TRUE;
@@ -111,28 +111,28 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
     $priceSet = $this->callAPISuccess('price_set', 'create', array_merge($paramsSet, $priceSetParams));
     $this->_priceSetID = $priceSet['id'];
 
-    $paramsField = array_merge(array(
+    $paramsField = array_merge([
       'label' => 'Price Field',
        'name' => CRM_Utils_String::titleToVar('Price Field'),
        'html_type' => 'CheckBox',
-       'option_label' => array('1' => 'Price Field 1', '2' => 'Price Field 2', '3' => 'Price Field 3'),
-       'option_value' => array('1' => 100, '2' => 200, '3' => 0),
-       'option_name' => array('1' => 'Price Field 1', '2' => 'Price Field 2'),
-       'option_weight' => array('1' => 1, '2' => 2, '3' => 3),
-       'option_amount' => array('1' => 100, '2' => 200, '3' => 0),
+       'option_label' => ['1' => 'Price Field 1', '2' => 'Price Field 2', '3' => 'Price Field 3'],
+       'option_value' => ['1' => 100, '2' => 200, '3' => 0],
+       'option_name' => ['1' => 'Price Field 1', '2' => 'Price Field 2'],
+       'option_weight' => ['1' => 1, '2' => 2, '3' => 3],
+       'option_amount' => ['1' => 100, '2' => 200, '3' => 0],
        'is_display_amounts' => 1,
        'weight' => 1,
        'options_per_line' => 1,
-       'is_active' => array('1' => 1, '2' => 1, '3' => 1),
+       'is_active' => ['1' => 1, '2' => 1, '3' => 1],
        'price_set_id' => $this->_priceSetID,
        'is_enter_qty' => 1,
        'financial_type_id' => CRM_Core_PseudoConstant::getKey('CRM_Contribute_BAO_Contribution', 'financial_type_id', 'Donation'),
-    ), $priceFieldOptions);
+    ], $priceFieldOptions);
 
     $priceField = CRM_Price_BAO_PriceField::create($paramsField);
-    $result = $this->callAPISuccess('PriceFieldValue', 'get', array('price_field_id' => $priceField->id));
+    $result = $this->callAPISuccess('PriceFieldValue', 'get', ['price_field_id' => $priceField->id]);
 
-    $priceFieldOptions = array($priceField->id => array());
+    $priceFieldOptions = [$priceField->id => []];
     foreach (array_keys($result['values']) as $pfvid) {
       $priceFieldOptions[$priceField->id][] = $pfvid;
     }
@@ -141,10 +141,10 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
   }
 
   public function getFinancialItemsByLineItemID($lineItemID) {
-    $result = $this->callAPISuccess('FinancialItem', 'get', array(
+    $result = $this->callAPISuccess('FinancialItem', 'get', [
      'entity_table' => 'civicrm_line_item',
      'entity_id' => $lineItemID,
-    ));
+    ]);
 
     return array_values($result['values']);
   }
@@ -192,12 +192,12 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
     }
   }
 
-  protected function createFinancialType($params = array()) {
+  protected function createFinancialType($params = []) {
     $params = array_merge($params,
-     array(
+     [
        'name' => 'Financial-Type -' . substr(sha1(rand()), 0, 7),
        'is_active' => 1,
-     )
+     ]
     );
     return $this->callAPISuccess('FinancialType', 'create', $params);
   }
@@ -210,20 +210,20 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
    * @return obj
    */
   protected function relationForFinancialTypeWithFinancialAccount($financialTypeId) {
-    $params = array(
+    $params = [
       'name' => 'Sales tax account ' . substr(sha1(rand()), 0, 4),
       'financial_account_type_id' => key(CRM_Core_PseudoConstant::accountOptionValues('financial_account_type', NULL, " AND v.name LIKE 'Liability' ")),
       'is_deductible' => 1,
       'is_tax' => 1,
       'tax_rate' => 10,
       'is_active' => 1,
-    );
+    ];
     $account = CRM_Financial_BAO_FinancialAccount::writeRecord($params);
-    $entityParams = array(
+    $entityParams = [
       'entity_table' => 'civicrm_financial_type',
       'entity_id' => $financialTypeId,
       'account_relationship' => key(CRM_Core_PseudoConstant::accountOptionValues('account_relationship', NULL, " AND v.name LIKE 'Sales Tax Account is' ")),
-    );
+    ];
 
     //CRM-20313: As per unique index added in civicrm_entity_financial_account table,
     //  first check if there's any record on basis of unique key (entity_table, account_relationship, entity_id)
@@ -241,10 +241,10 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
   /**
    * Enable Tax and Invoicing
    */
-  protected function enableTaxAndInvoicing($params = array()) {
+  protected function enableTaxAndInvoicing($params = []) {
     // Enable component contribute setting
     $contributeSetting = array_merge($params,
-     array(
+     [
        'invoicing' => 1,
        'invoice_prefix' => 'INV_',
        'credit_notes_prefix' => 'CN_',
@@ -254,7 +254,7 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
        'is_email_pdf' => 1,
        'tax_term' => 'Sales Tax',
        'tax_display_settings' => 'Inclusive',
-     )
+     ]
     );
     foreach ($contributeSetting as $key => $value) {
       Civi::settings()->set($key, $value);
@@ -264,7 +264,7 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
   /**
    * Enable Tax and Invoicing
    */
-  protected function disableTaxAndInvoicing($params = array()) {
+  protected function disableTaxAndInvoicing($params = []) {
     return Civi::settings()->set('invoicing', 0);
   }
 
@@ -276,11 +276,11 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
    *
    * @return array
    */
-  public function eventCreate($params = array()) {
+  public function eventCreate($params = []) {
     $this->createContact();
 
     // set defaults for missing params
-    $params = array_merge(array(
+    $params = array_merge([
       'title' => 'Annual CiviCRM meet',
       'summary' => 'If you have any CiviCRM related issues or want to track where CiviCRM is heading, Sign up now',
       'description' => 'This event is intended to give brief idea about progess of CiviCRM and giving solutions to common user issues',
@@ -296,7 +296,7 @@ class CRM_Lineitemedit_Form_BaseTest extends \PHPUnit\Framework\TestCase impleme
       'is_monetary' => 0,
       'is_active' => 1,
       'is_show_location' => 0,
-    ), $params);
+    ], $params);
     $event = $this->callAPISuccess('Event', 'create', $params);
 
     $priceSetParams = [

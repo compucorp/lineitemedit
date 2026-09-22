@@ -44,7 +44,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
 
   public function assignFormVariables($params = []) {
 
-    $this->_lineitemInfo = civicrm_api3('lineItem', 'getsingle', array('id' => $this->_id));
+    $this->_lineitemInfo = civicrm_api3('lineItem', 'getsingle', ['id' => $this->_id]);
     $this->_lineitemInfo['tax_amount'] = $this->_lineitemInfo['tax_amount'] ?? 0.00;
     foreach (CRM_Lineitemedit_Util::getLineitemFieldNames() as $attribute) {
       if (in_array($attribute, $this->submittableMoneyFields)) {
@@ -64,7 +64,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
     $this->_isQuickConfig = empty($this->_lineitemInfo['price_field_id']);
 
     if (!empty($this->_lineitemInfo['price_field_id'])) {
-      $this->_priceFieldInfo = civicrm_api3('PriceField', 'getsingle', array('id' => $this->_lineitemInfo['price_field_id']));
+      $this->_priceFieldInfo = civicrm_api3('PriceField', 'getsingle', ['id' => $this->_lineitemInfo['price_field_id']]);
       $this->_isQuickConfig = (bool) CRM_Core_DAO::getFieldValue('CRM_Price_DAO_PriceSet', $this->_priceFieldInfo['price_set_id'], 'is_quick_config');
     }
 
@@ -88,22 +88,22 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
     foreach ($fieldNames as $fieldName) {
       $required = TRUE;
       if ($fieldName == 'line_total') {
-        $this->add('text', 'line_total', E::ts('Total amount'), array(
+        $this->add('text', 'line_total', E::ts('Total amount'), [
           'size' => 6,
           'maxlength' => 14,
-          'readonly' => TRUE)
+          'readonly' => TRUE]
         );
         continue;
       }
       elseif ($fieldName == 'currency') {
         continue;
       }
-      $properties = array(
+      $properties = [
         'entity' => 'LineItem',
         'name' => $fieldName,
         'context' => 'edit',
         'action' => 'create',
-      );
+      ];
       if ($fieldName == 'financial_type_id') {
         CRM_Financial_BAO_FinancialType::getAvailableFinancialTypes($financialTypes);
         $properties['options'] = $financialTypes;
@@ -122,25 +122,25 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
 
     $this->assign('isTaxEnabled', $this->isTaxEnabledInFinancialType($this->_values['financial_type_id']));
 
-    $this->addFormRule(array(__CLASS__, 'formRule'), $this);
+    $this->addFormRule([__CLASS__, 'formRule'], $this);
 
-    $this->addButtons(array(
-      array(
+    $this->addButtons([
+      [
         'type' => 'submit',
         'name' => ts('Submit'),
         'isDefault' => TRUE,
-      ),
-      array(
+      ],
+      [
         'type' => 'cancel',
         'name' => ts('Close'),
-      ),
-    ));
+      ],
+    ]);
 
     parent::buildQuickForm();
   }
 
   public static function formRule($fields, $files, $self) {
-    $errors = array();
+    $errors = [];
 
     if (!CRM_Utils_Rule::numeric($fields['qty'])) {
       if ($self->_isQuickConfig || $self->_priceFieldInfo['is_enter_qty'] == 0) {
@@ -162,7 +162,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
     if (!$this->isTaxEnabledInFinancialType($values['financial_type_id'])) {
       $values['tax_amount'] = 0.00;
     }
-    $params = array(
+    $params = [
       'id' => $this->_id,
       'financial_type_id' => $values['financial_type_id'],
       'label' => $values['label'],
@@ -170,7 +170,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
       'unit_price' => Civi::format()->machineMoney($values['unit_price']),
       'line_total' => $values['line_total'],
       'tax_amount' => Civi::format()->machineMoney(($values['tax_amount'] ?? 0.00)),
-    );
+    ];
 
     $lineItem = CRM_Price_BAO_LineItem::create($params);
     $lineItem = civicrm_api3('LineItem', 'getsingle', ['id' => $this->_id]);
@@ -227,7 +227,7 @@ class CRM_Lineitemedit_Form_Edit extends CRM_Core_Form {
       $membership->execute();
     }
     else {
-      $line = array();
+      $line = [];
       $lineTotal = 0;
       $getUpdatedLineItems = CRM_Utils_SQL_Select::from('civicrm_line_item')
                               ->where([
