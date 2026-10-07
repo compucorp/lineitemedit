@@ -2,8 +2,6 @@
 
 use CRM_Lineitemedit_ExtensionUtil as E;
 
-require_once 'CRM/Core/Form.php';
-
 /**
  * Form controller class
  *
