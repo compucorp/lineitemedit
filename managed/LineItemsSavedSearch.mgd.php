@@ -134,6 +134,7 @@ return [
                       'check user permission',
                       '=',
                       [
+                        'edit contributions',
                         'edit line item',
                       ],
                     ],
@@ -154,6 +155,7 @@ return [
                       'check user permission',
                       '=',
                       [
+                        'delete in CiviContribute',
                         'cancel line item',
                       ],
                     ],
