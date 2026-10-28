@@ -16,5 +16,6 @@
     <path>civicrm/ajax/get-pricefield-info</path>
     <page_callback>CRM_Lineitemedit_Util::getPriceFieldInfo</page_callback>
     <access_arguments>access CiviCRM</access_arguments>
+    <is_ajax>true</is_ajax>
   </item>
 </menu>
