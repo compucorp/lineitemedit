@@ -385,7 +385,7 @@ ORDER BY  ps.id, pf.weight ;
    */
   public static function getPriceFieldInfo() {
     $priceFieldValueID = CRM_Utils_Request::retrieve('pfv_id', 'Integer');
-    $priceFieldValueInfo = civicrm_api3('PriceFieldValue', 'getsingle', array('id' => $priceFieldValueID));
+    $priceFieldValueInfo = civicrm_api3('PriceFieldValue', 'getsingle', ['id' => $priceFieldValueID]);
 
     // calculate tax amount
     $taxRates = CRM_Core_PseudoConstant::getTaxRates();
