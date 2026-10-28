@@ -10,6 +10,7 @@ return [
     'update' => 'always',
     'params' => [
       'version' => 4,
+      'match' => ['name'],
       'values' => [
         'name' => 'Line_Items',
         'label' => E::ts('Contribution Amount'),
@@ -54,6 +55,7 @@ return [
     'update' => 'unmodified',
     'params' => [
       'version' => 4,
+      'match' => ['saved_search_id', 'name'],
       'values' => [
         'name' => 'Line_Items_Table_Tax',
         'label' => E::ts('Contribution Tax Amounts'),
@@ -191,6 +193,7 @@ return [
     'update' => 'unmodified',
     'params' => [
       'version' => 4,
+      'match' => ['saved_search_id', 'name'],
       'values' => [
         'name' => 'Line_Items_Table',
         'label' => E::ts('Contribution Line Items'),
