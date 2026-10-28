@@ -324,5 +324,4 @@ function lineitemedit_civicrm_navigationMenu(&$menu) {
     'operator' => 'OR',
     'separator' => 0,
   ));
-  _lineitemedit_civix_navigationMenu($menu);
 } // */

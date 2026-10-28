@@ -384,31 +384,29 @@ ORDER BY  ps.id, pf.weight ;
    *      list of price field information
    */
   public static function getPriceFieldInfo() {
-    if (!empty($_GET['pfv_id'])) {
-      $priceFieldValueID = $_GET['pfv_id'];
-      $priceFieldValueInfo = civicrm_api3('PriceFieldValue', 'getsingle', ['id' => $priceFieldValueID]);
+    $priceFieldValueID = CRM_Utils_Request::retrieve('pfv_id', 'Integer');
+    $priceFieldValueInfo = civicrm_api3('PriceFieldValue', 'getsingle', ['id' => $priceFieldValueID]);
 
-      // calculate tax amount
-      $taxRates = CRM_Core_PseudoConstant::getTaxRates();
-      if (Civi::settings()->get('invoicing') &&
-        array_key_exists($priceFieldValueInfo['financial_type_id'], $taxRates)
-      ) {
-        $taxRate = $taxRates[$priceFieldValueInfo['financial_type_id']];
-        $priceFieldValueInfo['tax_amount'] = CRM_Contribute_BAO_Contribution_Utils::calculateTaxAmount(
-          $priceFieldValueInfo['amount'],
-          $taxRate
-        )['tax_amount'] ?? 0.00;
-      }
-
-      return CRM_Utils_JSON::output([
-        'qty' => 1,
-        'label' => $priceFieldValueInfo['label'],
-        'financial_type_id' => $priceFieldValueInfo['financial_type_id'],
-        'unit_price' => Civi::format()->machineMoney($priceFieldValueInfo['amount']),
-        'line_total' => Civi::format()->machineMoney($priceFieldValueInfo['amount']),
-        'tax_amount' => Civi::format()->machineMoney(($priceFieldCValueInfo['tax_amount'] ?? 0.00)),
-      ]);
+    // calculate tax amount
+    $taxRates = CRM_Core_PseudoConstant::getTaxRates();
+    if (Civi::settings()->get('invoicing') &&
+      array_key_exists($priceFieldValueInfo['financial_type_id'], $taxRates)
+    ) {
+      $taxRate = $taxRates[$priceFieldValueInfo['financial_type_id']];
+      $priceFieldValueInfo['tax_amount'] = CRM_Contribute_BAO_Contribution_Utils::calculateTaxAmount(
+        $priceFieldValueInfo['amount'],
+        $taxRate
+      )['tax_amount'] ?? 0.00;
     }
+
+    return CRM_Utils_JSON::output([
+      'qty' => 1,
+      'label' => $priceFieldValueInfo['label'],
+      'financial_type_id' => $priceFieldValueInfo['financial_type_id'],
+      'unit_price' => Civi::format()->machineMoney($priceFieldValueInfo['amount']),
+      'line_total' => Civi::format()->machineMoney($priceFieldValueInfo['amount']),
+      'tax_amount' => Civi::format()->machineMoney(($priceFieldCValueInfo['tax_amount'] ?? 0.00)),
+    ]);
   }
 
   /**

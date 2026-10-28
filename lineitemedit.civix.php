@@ -75,14 +75,36 @@ class CRM_Lineitemedit_ExtensionUtil {
     return self::CLASS_PREFIX . '_' . str_replace('\\', '_', $suffix);
   }
 
+  /**
+   * @return \CiviMix\Schema\SchemaHelperInterface
+   */
+  public static function schema() {
+    if (!isset($GLOBALS['CiviMixSchema'])) {
+      pathload()->loadPackage('civimix-schema@5', TRUE);
+    }
+    return $GLOBALS['CiviMixSchema']->getHelper(static::LONG_NAME);
+  }
+
 }
 
 use CRM_Lineitemedit_ExtensionUtil as E;
 
-function _lineitemedit_civix_mixin_polyfill() {
-  if (!class_exists('CRM_Extension_MixInfo')) {
-    $polyfill = __DIR__ . '/mixin/polyfill.php';
-    (require $polyfill)(E::LONG_NAME, E::SHORT_NAME, E::path());
+pathload()->addSearchDir(__DIR__ . '/mixin/lib');
+spl_autoload_register('_lineitemedit_civix_class_loader', TRUE, TRUE);
+
+function _lineitemedit_civix_class_loader($class) {
+  if ($class === 'CRM_Lineitemedit_DAO_Base') {
+    class_alias('CRM_Core_DAO_Base', 'CRM_Lineitemedit_DAO_Base');
+    // ^^ Materialize concrete names -- encourage IDE's to pick up on this association.
+    return;
+  }
+
+  // This allows us to tap-in to the installation process (without incurring real file-reads on typical requests).
+  if (strpos($class, 'CiviMix\\Schema\\Lineitemedit\\') === 0) {
+    // civimix-schema@5 is designed for backported use in download/activation workflows,
+    // where new revisions may become dynamically available.
+    pathload()->loadPackage('civimix-schema@5', TRUE);
+    CiviMix\Schema\loadClass($class);
   }
 }
 
@@ -98,10 +120,7 @@ function _lineitemedit_civix_civicrm_config($config = NULL) {
   }
   $configured = TRUE;
 
-  $extRoot = __DIR__ . DIRECTORY_SEPARATOR;
-  $include_path = $extRoot . PATH_SEPARATOR . get_include_path();
-  set_include_path($include_path);
-  _lineitemedit_civix_mixin_polyfill();
+  // Based on <compatibility>, this does not currently require mixin/polyfill.php.
 }
 
 /**
@@ -111,7 +130,7 @@ function _lineitemedit_civix_civicrm_config($config = NULL) {
  */
 function _lineitemedit_civix_civicrm_install() {
   _lineitemedit_civix_civicrm_config();
-  _lineitemedit_civix_mixin_polyfill();
+  // Based on <compatibility>, this does not currently require mixin/polyfill.php.
 }
 
 /**
@@ -121,7 +140,7 @@ function _lineitemedit_civix_civicrm_install() {
  */
 function _lineitemedit_civix_civicrm_enable(): void {
   _lineitemedit_civix_civicrm_config();
-  _lineitemedit_civix_mixin_polyfill();
+  // Based on <compatibility>, this does not currently require mixin/polyfill.php.
 }
 
 /**
@@ -160,48 +179,5 @@ function _lineitemedit_civix_insert_navigation_menu(&$menu, $path, $item) {
       }
     }
     return $found;
-  }
-}
-
-/**
- * (Delegated) Implements hook_civicrm_navigationMenu().
- */
-function _lineitemedit_civix_navigationMenu(&$nodes) {
-  if (!is_callable(['CRM_Core_BAO_Navigation', 'fixNavigationMenu'])) {
-    _lineitemedit_civix_fixNavigationMenu($nodes);
-  }
-}
-
-/**
- * Given a navigation menu, generate navIDs for any items which are
- * missing them.
- */
-function _lineitemedit_civix_fixNavigationMenu(&$nodes) {
-  $maxNavID = 1;
-  array_walk_recursive($nodes, function($item, $key) use (&$maxNavID) {
-    if ($key === 'navID') {
-      $maxNavID = max($maxNavID, $item);
-    }
-  });
-  _lineitemedit_civix_fixNavigationMenuItems($nodes, $maxNavID, NULL);
-}
-
-function _lineitemedit_civix_fixNavigationMenuItems(&$nodes, &$maxNavID, $parentID) {
-  $origKeys = array_keys($nodes);
-  foreach ($origKeys as $origKey) {
-    if (!isset($nodes[$origKey]['attributes']['parentID']) && $parentID !== NULL) {
-      $nodes[$origKey]['attributes']['parentID'] = $parentID;
-    }
-    // If no navID, then assign navID and fix key.
-    if (!isset($nodes[$origKey]['attributes']['navID'])) {
-      $newKey = ++$maxNavID;
-      $nodes[$origKey]['attributes']['navID'] = $newKey;
-      $nodes[$newKey] = $nodes[$origKey];
-      unset($nodes[$origKey]);
-      $origKey = $newKey;
-    }
-    if (isset($nodes[$origKey]['child']) && is_array($nodes[$origKey]['child'])) {
-      _lineitemedit_civix_fixNavigationMenuItems($nodes[$origKey]['child'], $maxNavID, $nodes[$origKey]['attributes']['navID']);
-    }
   }
 }
