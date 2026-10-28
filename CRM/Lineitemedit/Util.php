@@ -384,6 +384,7 @@ ORDER BY  ps.id, pf.weight ;
    *      list of price field information
    */
   public static function getPriceFieldInfo() {
+    CRM_Core_Page_AJAX::validateAjaxRequestMethod();
     $priceFieldValueID = CRM_Utils_Request::retrieve('pfv_id', 'Integer');
     $priceFieldValueInfo = civicrm_api3('PriceFieldValue', 'getsingle', ['id' => $priceFieldValueID]);
 
