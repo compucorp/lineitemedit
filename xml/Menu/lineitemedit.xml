@@ -4,13 +4,13 @@
     <path>civicrm/lineitem/edit</path>
     <page_callback>CRM_Lineitemedit_Form_Edit</page_callback>
     <title>Edit Item</title>
-    <access_arguments>access CiviCRM</access_arguments>
+    <access_arguments>access CiviCRM,edit contributions,edit line item</access_arguments>
   </item>
   <item>
     <path>civicrm/lineitem/cancel</path>
     <page_callback>CRM_Lineitemedit_Form_Cancel</page_callback>
     <title>Cancel Item</title>
-    <access_arguments>access CiviCRM</access_arguments>
+    <access_arguments>access CiviCRM,delete in CiviContribute,cancel line item</access_arguments>
   </item>
   <item>
     <path>civicrm/ajax/get-pricefield-info</path>
