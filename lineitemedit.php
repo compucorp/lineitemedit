@@ -188,8 +188,16 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
           $params['net_amount'] = $params['total_amount'] - $params['fee_amount'] ?? 0;
           if (!empty($lineItemParams[$i]['line_total']) && !empty($lineItemParams[$i]['price_field_id'])) {
             $priceSetID = CRM_Core_DAO::getFieldValue('CRM_Price_BAO_PriceField', $lineItemParams[$i]['price_field_id'], 'price_set_id');
-            if (!empty($params['line_item'][$priceSetID])) {
-              $params['line_item'][$priceSetID][$lineItemParams[$i]['price_field_value_id']] = $lineItemParams[$i];
+            // Core lists the line items of the default price set here. Up to
+            // CiviCRM 6.19 that list always holds a line for the (zero) total
+            // amount; from 6.20 it is empty when the total amount is zero, so
+            // only check that core is using this price set.
+            if (isset($params['line_item'][$priceSetID]) && is_array($params['line_item'][$priceSetID])) {
+              $params['line_item'][$priceSetID][$lineItemParams[$i]['price_field_value_id']] = _lineitemedit_fill_line_item_entity(
+                $lineItemParams[$i],
+                $params['line_item'][$priceSetID],
+                $params
+              );
             }
           }
         }
@@ -280,6 +288,43 @@ function lineitemedit_civicrm_pre($op, $entity, $entityID, &$params) {
       $params['skipLineItem'] = TRUE;
     }
   }
+}
+
+/**
+ * Sets the entity a new line item belongs to.
+ *
+ * From CiviCRM 6.20 core fills in entity_table and entity_id on the line
+ * items before it calls hook_civicrm_pre, so a line item added in that hook
+ * has to carry them. Earlier versions fill them in after the hook.
+ *
+ * @param array $lineItem
+ *   The line item built from the submitted row.
+ * @param array $coreLineItems
+ *   The line items core has built for the same price set.
+ * @param array $contributionParams
+ *   The params of the contribution being created.
+ *
+ * @return array
+ *   The line item, with the entity set where it can be worked out.
+ */
+function _lineitemedit_fill_line_item_entity(array $lineItem, array $coreLineItems, array $contributionParams) {
+  $coreLineItem = $coreLineItems[$lineItem['price_field_value_id']] ?? reset($coreLineItems);
+  if (!empty($coreLineItem['entity_table'])) {
+    $lineItem['entity_table'] = $coreLineItem['entity_table'];
+    if (!empty($coreLineItem['entity_id'])) {
+      $lineItem['entity_id'] = $coreLineItem['entity_id'];
+    }
+  }
+  elseif (!empty($contributionParams['membership_id'])) {
+    $lineItem['entity_table'] = 'civicrm_membership';
+    $lineItem['entity_id'] = $contributionParams['membership_id'];
+  }
+  elseif (empty($contributionParams['participant_id'])) {
+    // Core sets entity_id to the new contribution's ID.
+    $lineItem['entity_table'] = 'civicrm_contribution';
+  }
+
+  return $lineItem;
 }
 
 function lineitemedit_civicrm_post($op, $entity, $entityID, &$obj) {
